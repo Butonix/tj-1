@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Article_Snippet"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/Article_Snippet_Title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        tools:text="TJournal + Pocket = ?" />
+
+    <TextView
+        android:id="@+id/intro"
+        style="@style/Article_Snippet_Intro"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/title"
+        tools:text="Alexey released new app for reading TJournal on Android" />
+
+    <ImageView
+        android:id="@+id/photo"
+        style="@style/Article_Snippet_Photo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/intro"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/source"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/photo"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/comments"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/photo"
+        android:layout_toRightOf="@id/source"
+        android:visibility="gone"
+        tools:text="50"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/likes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/photo"
+        android:layout_toRightOf="@id/comments"
+        android:visibility="gone"
+        tools:text="+10"
+        tools:visibility="visible" />
+</RelativeLayout>
