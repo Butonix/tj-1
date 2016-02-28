@@ -17,9 +17,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <fragment
+        <FrameLayout
             android:id="@+id/placeholder"
-            class="com.github.marwinxxii.tjournal.fragments.ArticleFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </LinearLayout>
@@ -28,5 +27,6 @@
         android:id="@+id/drawer_menu"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="right" />
+        android:layout_gravity="start"
+        app:menu="@menu/drawer_main" />
 </android.support.v4.widget.DrawerLayout>

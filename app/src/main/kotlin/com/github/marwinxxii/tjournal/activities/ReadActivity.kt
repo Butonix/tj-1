@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import com.github.marwinxxii.tjournal.EventBus
 import com.github.marwinxxii.tjournal.R
 import com.github.marwinxxii.tjournal.extensions.getAppComponent
+import com.github.marwinxxii.tjournal.fragments.LoadArticleRequestEvent
 import com.github.marwinxxii.tjournal.service.ArticlesDAO
 import kotlinx.android.synthetic.main.activity_read.*
 import org.jetbrains.anko.toast
@@ -16,19 +18,36 @@ import javax.inject.Inject
 /**
  * Created by alexey on 23.02.16.
  */
-class ReadActivity : AppCompatActivity() {
+class ReadActivity : AppCompatActivity(), ActivityComponentHolder {
+  lateinit override var component: ActivityComponent
   @Inject lateinit var cache: ArticlesDAO
+  @Inject lateinit var eventBus: EventBus
   val articleIds: MutableList<Int> = mutableListOf()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    component = getAppComponent().plus(ActivityModule(this))
+    component.inject(this)
     setContentView(R.layout.activity_read)
     setSupportActionBar(toolbar)
-    getAppComponent().plus(ActivityModule(this)).inject(this)
+    supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+    drawer_menu.setNavigationItemSelectedListener {
+      it.isChecked = true
+      eventBus.post(LoadArticleRequestEvent(it.itemId))//TODO method
+      drawer.closeDrawers()
+      true
+    }
     cache.getReadyArticlesIds()
+      .subscribeOn(Schedulers.computation())
+      .observeOn(AndroidSchedulers.mainThread())
       .subscribe {
         articleIds.addAll(it)
-        loadArticle(it.get(0))
+        val menu = drawer_menu.menu
+        for (i: Int in it.indices) {
+          menu.add(0, it.get(i), i, it.get(i).toString()).isChecked = i == 0
+        }
+        menu.setGroupCheckable(0, true, true)
+        loadNextArticle()
       }
   }
 
@@ -45,25 +64,18 @@ class ReadActivity : AppCompatActivity() {
           .subscribe()
         articleIds.removeAt(0)
         if (articleIds.size > 0) {
-          loadArticle(articleIds.get(0))
+          loadNextArticle()
         } else {
           toast("No more articles")
           finish()
         }
       }
+      android.R.id.home -> finish()//TODO NavUtils.navigateUpFromSameTask
     }
     return true
   }
 
-  fun loadArticle(id: Int) {
-    cache.getArticle(id)
-      .observeOn(AndroidSchedulers.mainThread())
-      .subscribe {
-        webView.loadData(prepareText(it.text), "text/html; charset=utf-8", "utf-8")
-      }
-  }
-
-  fun prepareText(text: String): String {
-    return "<!doctype html><html><head><meta charset=\"utf-8\"></head><body>$text</body>"
+  private fun loadNextArticle() {
+    eventBus.post(LoadArticleRequestEvent(articleIds.get(0)))
   }
 }

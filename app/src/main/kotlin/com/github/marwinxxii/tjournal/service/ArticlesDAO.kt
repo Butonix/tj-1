@@ -1,5 +1,6 @@
 package com.github.marwinxxii.tjournal.service
 
+import android.database.Cursor
 import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.entities.CoverPhoto
@@ -22,24 +23,7 @@ class ArticlesDAO(private val db: DBService) {
           if (!this.moveToFirst()) {
             return@exec null
           }
-          val thumbnail = this.getString("coverThumbnailUrl")
-          val fullCover = this.getString("coverUrl")
-
-          Article(
-            ArticlePreview(
-              this.getLong("_id"),
-              this.getInt("status"),
-              this.getInt("id"),
-              this.getString("title")!!,
-              this.getString("url")!!,
-              this.getString("intro")!!,
-              Date(this.getLong("date")),
-              this.getInt("commentsCount"),
-              this.getInt("likes"),
-              if (thumbnail != null && fullCover != null) CoverPhoto(thumbnail, fullCover) else null
-            ),
-            this.getString("text")!!
-          )
+          Article(readPreview(this), this.getString("text")!!)
         }
     }
       .filterNonNull()
@@ -93,19 +77,19 @@ class ArticlesDAO(private val db: DBService) {
 
   fun countArticlesByStatus(status: Int): Observable<Int> {
     return Observable.fromCallable {
-      db.getReadable().use {
-        it.rawQuery(
-          "select count(*) from article where status=" + status, null
-        ).parseSingle(IntParser)
-      }
+      db.getReadable()
+        .select("article", "count(*)")
+        .where("status=" + status)
+        .parseSingle(IntParser)
     }
   }
 
   fun countUnreadArticles(): Observable<Int> {
     return Observable.fromCallable {
-      db.getReadable().use {
-        it.rawQuery("select count(*) from article where status!=" + READ, null).parseSingle(IntParser)
-      }
+      db.getReadable()
+        .select("article", "count(*)")
+        .where("status!=" + READ)
+        .parseSingle(IntParser)
     }
   }
 
@@ -114,5 +98,52 @@ class ArticlesDAO(private val db: DBService) {
       db.getWritable().update("article", "status" to READ).where("id=" + id).exec()
       notifyDataChanged()
     }
+  }
+
+  fun getSavedArticles(): Observable<List<ArticlePreview>> {
+    return Observable.fromCallable {
+      db.getReadable()
+        .select("article", "*")
+        .where("status=" + READY)
+        .exec {
+          val result = mutableListOf<ArticlePreview>()
+          while (this.moveToNext()) {
+            result.add(readPreview(this))
+          }
+          result
+        }
+    }
+  }
+
+  fun getReadArticles(): Observable<List<ArticlePreview>> {
+    return Observable.fromCallable {
+      db.getReadable()
+        .select("article", "*")
+        .where("status=" + READ)
+        .exec {
+          val result = mutableListOf<ArticlePreview>()
+          while (this.moveToNext()) {
+            result.add(readPreview(this))
+          }
+          result
+        }
+    }
+  }
+
+  private fun readPreview(c: Cursor): ArticlePreview {
+    val thumbnail = c.getString("coverThumbnailUrl")
+    val fullCover = c.getString("coverUrl")
+    return ArticlePreview(
+      c.getLong("_id"),
+      c.getInt("status"),
+      c.getInt("id"),
+      c.getString("title")!!,
+      c.getString("url")!!,
+      c.getString("intro")!!,
+      Date(c.getLong("date")),
+      c.getInt("commentsCount"),
+      c.getInt("likes"),
+      if (thumbnail != null && fullCover != null) CoverPhoto(thumbnail, fullCover) else null
+    )
   }
 }

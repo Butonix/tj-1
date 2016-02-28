@@ -15,23 +15,19 @@ import com.github.marwinxxii.tjournal.AppComponent
  * Created by alexey on 20.02.16.
  */
 
-fun <T : Context> T.getApp(): App {
-  return (this.applicationContext as App)
-}
+fun <T : Context> T.getApp(): App = this.applicationContext as App
 
-fun <T : Context> T.getAppComponent(): AppComponent {
-  return getApp().component
-}
+fun <T : Context> T.getAppComponent(): AppComponent = getApp().component
 
 fun <T> Activity.startActivityWithClass(cl: Class<T>) {
   startActivity(Intent(this, cl))
 }
 
-fun <T: View> T.toggleVisibility(visible: Boolean) {
+fun <T : View> T.toggleVisibility(visible: Boolean) {
   this.visibility = if (visible) View.VISIBLE else View.GONE
 }
 
-fun <T: TextView> T.toggleVisibilityAndText(visible: Boolean, text:CharSequence) {
+fun <T : TextView> T.toggleVisibilityAndText(visible: Boolean, text: CharSequence) {
   if (visible) {
     this.text = text
     this.visibility = View.VISIBLE
@@ -40,7 +36,7 @@ fun <T: TextView> T.toggleVisibilityAndText(visible: Boolean, text:CharSequence)
   }
 }
 
-fun <T: TextView> T.toggleVisibilityAndText(visible: Boolean, value:Any) {
+fun <T : TextView> T.toggleVisibilityAndText(visible: Boolean, value: Any) {
   return toggleVisibilityAndText(visible, value.toString())
 }
 
@@ -51,7 +47,7 @@ fun SQLiteDatabase.insert(tableName: String, vararg values: Pair<String, Any?>):
 fun Array<out Pair<String, Any?>>._toContentValues(): ContentValues {
   val values = ContentValues()
   for ((key, value) in this) {
-    when(value) {
+    when (value) {
       is Boolean -> values.put(key, value)
       is Byte -> values.put(key, value)
       is ByteArray -> values.put(key, value)
@@ -68,18 +64,12 @@ fun Array<out Pair<String, Any?>>._toContentValues(): ContentValues {
   return values
 }
 
-inline fun <T> Cursor.getValueFromCursor(columnName: String, getter: (Cursor, Int)->T):T {
+inline fun <T> Cursor.getValueFromCursor(columnName: String, getter: (Cursor, Int) -> T): T {
   return getter(this, this.getColumnIndex(columnName))
 }
 
-fun Cursor.getLong(columnName: String): Long {
-  return getValueFromCursor(columnName, Cursor::getLong)
-}
+fun Cursor.getLong(columnName: String): Long = getValueFromCursor(columnName, Cursor::getLong)
 
-fun Cursor.getInt(columnName: String): Int {
-  return getValueFromCursor(columnName, Cursor::getInt)
-}
+fun Cursor.getInt(columnName: String): Int = getValueFromCursor(columnName, Cursor::getInt)
 
-fun Cursor.getString(columnName: String): String? {
-  return getValueFromCursor(columnName, Cursor::getString)
-}
+fun Cursor.getString(columnName: String): String? = getValueFromCursor(columnName, Cursor::getString)

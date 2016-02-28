@@ -1,6 +1,9 @@
 package com.github.marwinxxii.tjournal.activities
 
 import android.app.Activity
+import android.support.v4.app.Fragment
+import com.github.marwinxxii.tjournal.fragments.FragmentComponent
+import com.github.marwinxxii.tjournal.fragments.FragmentModule
 import dagger.Module
 import dagger.Provides
 import dagger.Subcomponent
@@ -15,7 +18,9 @@ import javax.inject.Scope
 interface ActivityComponent {
   fun activity(): Activity
 
-  fun inject(activity: ListActivity)
+  fun plus(fragment: FragmentModule): FragmentComponent
+
+  fun inject(activity: MainActivity)
 
   fun inject(activity: ReadActivity)
 }
@@ -31,3 +36,7 @@ class ActivityModule(val activity: Activity) {
 @Scope
 @Retention(AnnotationRetention.RUNTIME)
 annotation class PerActivity
+
+interface ActivityComponentHolder {
+  val component: ActivityComponent
+}

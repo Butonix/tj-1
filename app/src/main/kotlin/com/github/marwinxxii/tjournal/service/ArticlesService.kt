@@ -3,6 +3,7 @@ package com.github.marwinxxii.tjournal.service
 import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.network.TJournalAPI
+import org.jsoup.Jsoup
 import rx.Observable
 
 /**
@@ -16,7 +17,12 @@ class ArticlesService(
 
   fun getArticles(page: Int): Observable<List<ArticlePreview>> {
     //TODO use deserializer?
-    return api.getNews(page * 30)
+    return api.getNews(page * 30).map {
+      it.map {
+        val intro = Jsoup.parse(it.intro).text()
+        it.copy(intro = intro)
+      }
+    }
   }
 
   fun getArticle(preview: ArticlePreview): Observable<Article> {
