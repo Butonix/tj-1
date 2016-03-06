@@ -1,6 +1,7 @@
 package com.github.marwinxxii.tjournal.activities
 
 import android.os.Bundle
+import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
@@ -31,6 +32,7 @@ class ReadActivity : AppCompatActivity(), ActivityComponentHolder {
     setContentView(R.layout.activity_read)
     setSupportActionBar(toolbar)
     supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+    drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
     drawer_menu.setNavigationItemSelectedListener {
       it.isChecked = true
       eventBus.post(LoadArticleRequestEvent(it.itemId))//TODO method
@@ -41,13 +43,15 @@ class ReadActivity : AppCompatActivity(), ActivityComponentHolder {
       .subscribeOn(Schedulers.computation())
       .observeOn(AndroidSchedulers.mainThread())
       .subscribe {
-        articleIds.addAll(it)
         val menu = drawer_menu.menu
         for (i: Int in it.indices) {
-          menu.add(0, it.get(i), i, it.get(i).toString()).isChecked = i == 0
+          val idTitle = it[i]
+          articleIds.add(idTitle.first)
+          menu.add(0, idTitle.first, i, idTitle.second).isChecked = i == 0
         }
         menu.setGroupCheckable(0, true, true)
         loadNextArticle()
+        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
       }
   }
 

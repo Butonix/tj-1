@@ -61,13 +61,13 @@ class ArticlesDAO(private val db: DBService) {
     changesSubject.onNext(null)
   }
 
-  fun getReadyArticlesIds(): Observable<List<Int>> {
+  fun getReadyArticlesIds(): Observable<List<Pair<Int, String>>> {
     return Observable.fromCallable {
       db.getReadable()
-        .select("article", "id")
+        .select("article", "id", "title")
         .where("status=" + READY)
         .orderBy("date", SqlOrderDirection.DESC)
-        .parseList(IntParser)
+        .parseList(rowParser { id: Long, title:String -> Pair(id.toInt(), title) })
     }
   }
 
