@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import com.github.marwinxxii.tjournal.R
 import com.github.marwinxxii.tjournal.activities.ReadActivity
 import com.github.marwinxxii.tjournal.extensions.startActivityWithClass
+import com.github.marwinxxii.tjournal.extensions.toggleVisibility
 import com.github.marwinxxii.tjournal.service.ArticlesService
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
 import kotlinx.android.synthetic.*
@@ -50,12 +51,9 @@ class FeedFragment : Fragment() {
       .subscribeOn(Schedulers.computation())
       .observeOn(AndroidSchedulers.mainThread())
       .subscribe {
-        if (it.total > 0) {
-          read.visibility = View.VISIBLE
-          read.text = "Read ${it.loaded} / ${it.total}"
-        } else {
-          read.visibility = View.GONE
-        }
+        read.toggleVisibility(it.total > 0)
+        read.text = "Read ${it.loaded} / ${it.total}"
+        read.isEnabled = it.loaded > 0
       }
 
     read.setOnClickListener({
