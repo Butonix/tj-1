@@ -1,8 +1,7 @@
 package com.github.marwinxxii.tjournal
 
 import android.app.Application
-import com.github.marwinxxii.tjournal.activities.ActivityComponent
-import com.github.marwinxxii.tjournal.activities.ActivityModule
+import com.github.marwinxxii.tjournal.activities.*
 import com.github.marwinxxii.tjournal.network.NetworkModule
 import com.github.marwinxxii.tjournal.service.ArticlesModule
 import com.github.marwinxxii.tjournal.service.DBModule
@@ -18,7 +17,7 @@ import javax.inject.Singleton
 /**
  * Created by alexey on 20.02.16.
  */
-class App: Application() {
+class App : Application() {
   lateinit var component: AppComponent
 
   override fun onCreate() {
@@ -52,7 +51,9 @@ class EventBus {
 interface AppComponent {
   fun app(): App
 
-  fun plus(activityModule: ActivityModule): ActivityComponent
+  fun mainActivity(activityModule: ActivityModule): MainActivityComponent
+
+  fun readActivity(activityModule: ActivityModule): ReadActivityComponent
 }
 
 @Module

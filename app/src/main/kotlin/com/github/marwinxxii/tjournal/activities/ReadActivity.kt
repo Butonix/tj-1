@@ -2,14 +2,15 @@ package com.github.marwinxxii.tjournal.activities
 
 import android.os.Bundle
 import android.support.v4.widget.DrawerLayout
-import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import com.github.marwinxxii.tjournal.EventBus
 import com.github.marwinxxii.tjournal.R
 import com.github.marwinxxii.tjournal.extensions.getAppComponent
+import com.github.marwinxxii.tjournal.fragments.ArticleFragment
 import com.github.marwinxxii.tjournal.fragments.LoadArticleRequestEvent
 import com.github.marwinxxii.tjournal.service.ArticlesDAO
+import dagger.Subcomponent
 import kotlinx.android.synthetic.main.activity_read.*
 import org.jetbrains.anko.toast
 import rx.android.schedulers.AndroidSchedulers
@@ -19,16 +20,18 @@ import javax.inject.Inject
 /**
  * Created by alexey on 23.02.16.
  */
-class ReadActivity : AppCompatActivity(), ActivityComponentHolder {
-  lateinit override var component: ActivityComponent
+class ReadActivity : BaseActivity() {
+  lateinit var component: ReadActivityComponent
   @Inject lateinit var cache: ArticlesDAO
   @Inject lateinit var eventBus: EventBus
   val articleIds: MutableList<Int> = mutableListOf()
 
+  override fun initComponent() {
+    component = getAppComponent().readActivity(ActivityModule(this))
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    component = getAppComponent().plus(ActivityModule(this))
-    component.inject(this)
     setContentView(R.layout.activity_read)
     setSupportActionBar(toolbar)
     supportActionBar!!.setDisplayHomeAsUpEnabled(true)
@@ -39,6 +42,7 @@ class ReadActivity : AppCompatActivity(), ActivityComponentHolder {
       drawer.closeDrawers()
       true
     }
+    component.inject(this)
     cache.getReadyArticlesIds()
       .subscribeOn(Schedulers.computation())
       .observeOn(AndroidSchedulers.mainThread())
@@ -82,4 +86,12 @@ class ReadActivity : AppCompatActivity(), ActivityComponentHolder {
   private fun loadNextArticle() {
     eventBus.post(LoadArticleRequestEvent(articleIds.get(0)))
   }
+}
+
+@Subcomponent(modules = arrayOf(ActivityModule::class))
+@PerActivity
+interface ReadActivityComponent : AbstractActivityComponent {
+  fun inject(activity: ReadActivity)
+
+  fun inject(fragment: ArticleFragment)
 }

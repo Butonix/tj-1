@@ -1,7 +1,6 @@
 package com.github.marwinxxii.tjournal.fragments
 
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
@@ -9,12 +8,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.github.marwinxxii.tjournal.R
+import com.github.marwinxxii.tjournal.activities.MainActivity
 import com.github.marwinxxii.tjournal.activities.ReadActivity
+import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.extensions.startActivityWithClass
 import com.github.marwinxxii.tjournal.extensions.toggleVisibility
+import com.github.marwinxxii.tjournal.service.ArticleCount
 import com.github.marwinxxii.tjournal.service.ArticlesService
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
-import kotlinx.android.synthetic.*
 import kotlinx.android.synthetic.main.fragment_feed.*
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
@@ -23,12 +24,11 @@ import javax.inject.Inject
 /**
  * Created by alexey on 27.02.16.
  */
-class FeedFragment : Fragment() {
+class FeedFragment : BaseFragment() {
   @Inject lateinit var service: ArticlesService
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    activityComponent().plus(FragmentModule(this)).inject(this)
+  override fun injectSelf() {
+    (activity as MainActivity).component.inject(this)
   }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -42,18 +42,10 @@ class FeedFragment : Fragment() {
     items.adapter = adapter
     service.getArticles(0)
       .observeOn(AndroidSchedulers.mainThread())
+      .compose(bindToLifecycle<List<ArticlePreview>>())
       .subscribe {
         adapter.items.addAll(it)
         adapter.notifyDataSetChanged()
-      }
-
-    service.observeArticleCount()
-      .subscribeOn(Schedulers.computation())
-      .observeOn(AndroidSchedulers.mainThread())
-      .subscribe {
-        read.toggleVisibility(it.total > 0)
-        read.text = "Read ${it.loaded} / ${it.total}"
-        read.isEnabled = it.loaded > 0
       }
 
     read.setOnClickListener({
@@ -77,6 +69,20 @@ class FeedFragment : Fragment() {
   override fun onDestroyView() {
     //clearFindViewByIdCache()
     super.onDestroyView()
+  }
+
+  override fun onResume() {
+    super.onResume()
+    //TODO notify about changes
+    service.observeArticleCount()
+      .subscribeOn(Schedulers.computation())
+      .observeOn(AndroidSchedulers.mainThread())
+      .compose(bindToLifecycle<ArticleCount>())
+      .subscribe {
+        read.toggleVisibility(it.total > 0)
+        read.text = "Read ${it.loaded} / ${it.total}"
+        read.isEnabled = it.loaded > 0
+      }
   }
 
   private fun setTitle(count: Int) {

@@ -1,12 +1,13 @@
 package com.github.marwinxxii.tjournal.fragments
 
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.github.marwinxxii.tjournal.R
+import com.github.marwinxxii.tjournal.activities.MainActivity
+import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.service.ArticlesDAO
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
 import kotlinx.android.synthetic.main.fragment_feed.*
@@ -17,12 +18,11 @@ import javax.inject.Inject
 /**
  * Created by alexey on 27.02.16.
  */
-class ReadFragment : Fragment() {
+class ReadFragment : BaseFragment() {
   @Inject lateinit var dao: ArticlesDAO
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    activityComponent().plus(FragmentModule(this)).inject(this)
+  override fun injectSelf() {
+    (activity as MainActivity).component.inject(this)
   }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -37,6 +37,7 @@ class ReadFragment : Fragment() {
     dao.getReadArticles()
       .subscribeOn(Schedulers.computation())
       .observeOn(AndroidSchedulers.mainThread())
+      .compose(bindToLifecycle<List<ArticlePreview>>())
       .subscribe({
         if (it.isEmpty()) {
         } else {

@@ -1,8 +1,6 @@
 package com.github.marwinxxii.tjournal.fragments
 
 import android.support.v4.app.Fragment
-import com.github.marwinxxii.tjournal.activities.ActivityComponent
-import com.github.marwinxxii.tjournal.activities.ActivityComponentHolder
 import dagger.Module
 import dagger.Provides
 import dagger.Subcomponent
@@ -11,6 +9,7 @@ import javax.inject.Scope
 /**
  * Created by alexey on 27.02.16.
  */
+@PerFragment
 @Subcomponent(modules = arrayOf(FragmentModule::class))
 interface FragmentComponent {
   fun inject(fragment: FeedFragment)
@@ -33,7 +32,3 @@ class FragmentModule(val fragment: Fragment) {
 
 @Scope
 annotation class PerFragment
-
-fun Fragment.activityComponent(): ActivityComponent {
-  return (activity as ActivityComponentHolder).component
-}

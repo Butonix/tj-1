@@ -4,20 +4,24 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.app.AppCompatActivity
 import com.github.marwinxxii.tjournal.R
 import com.github.marwinxxii.tjournal.extensions.getAppComponent
 import com.github.marwinxxii.tjournal.fragments.FeedFragment
 import com.github.marwinxxii.tjournal.fragments.ReadFragment
 import com.github.marwinxxii.tjournal.fragments.SavedFragment
+import dagger.Subcomponent
 import kotlinx.android.synthetic.main.activity_main.*
 
 /**
  * Created by alexey on 20.02.16.
  */
-class MainActivity : AppCompatActivity(), ActivityComponentHolder {
-  lateinit override var component: ActivityComponent
+class MainActivity : BaseActivity() {
+  lateinit var component: MainActivityComponent
   lateinit var drawerToggle: ActionBarDrawerToggle
+
+  override fun initComponent() {
+    component = getAppComponent().mainActivity(ActivityModule(this))
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -25,7 +29,6 @@ class MainActivity : AppCompatActivity(), ActivityComponentHolder {
     setSupportActionBar(toolbar)
     drawerToggle = ActionBarDrawerToggle(this, drawer, toolbar, 0, 0)
     drawer.setDrawerListener(drawerToggle)
-    component = getAppComponent().plus(ActivityModule(this))
     component.inject(this)
     drawer_menu.setNavigationItemSelectedListener({
       it.isChecked = true
@@ -56,4 +59,16 @@ class MainActivity : AppCompatActivity(), ActivityComponentHolder {
   fun showFragment(fragment: Fragment) {
     supportFragmentManager.beginTransaction().replace(R.id.placeholder, fragment).commit()
   }
+}
+
+@Subcomponent(modules = arrayOf(ActivityModule::class))
+@PerActivity
+interface MainActivityComponent : AbstractActivityComponent {
+  fun inject(activity: MainActivity)
+
+  fun inject(fragment: FeedFragment)
+
+  fun inject(fragment: SavedFragment)
+
+  fun inject(fragment: ReadFragment)
 }

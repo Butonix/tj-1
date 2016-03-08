@@ -1,12 +1,13 @@
 package com.github.marwinxxii.tjournal.fragments
 
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.github.marwinxxii.tjournal.EventBus
 import com.github.marwinxxii.tjournal.R
+import com.github.marwinxxii.tjournal.activities.ReadActivity
+import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.service.ArticlesDAO
 import kotlinx.android.synthetic.main.fragment_article.*
 import rx.android.schedulers.AndroidSchedulers
@@ -15,13 +16,12 @@ import javax.inject.Inject
 /**
  * Created by alexey on 28.02.16.
  */
-class ArticleFragment : Fragment() {
+class ArticleFragment : BaseFragment() {
   @Inject lateinit var eventBus: EventBus
   @Inject lateinit var dao: ArticlesDAO
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    activityComponent().plus(FragmentModule(this)).inject(this)
+  override fun injectSelf() {
+    (activity as ReadActivity).component.inject(this)
   }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -32,9 +32,9 @@ class ArticleFragment : Fragment() {
     super.onViewCreated(view, savedInstanceState)
     webView.visibility
     //TODO BIND lifecycle
-    eventBus.observe(LoadArticleRequestEvent::class.java).subscribe {
-      loadArticle(it.id)
-    }
+    eventBus.observe(LoadArticleRequestEvent::class.java)
+      .compose(bindToLifecycle<LoadArticleRequestEvent>())
+      .subscribe { loadArticle(it.id) }
     if (arguments != null && arguments.containsKey(KEY_ID)) {
       loadArticle(arguments.getInt(KEY_ID))
     }
@@ -47,6 +47,7 @@ class ArticleFragment : Fragment() {
   fun loadArticle(id: Int) {
     dao.getArticle(id)
       .observeOn(AndroidSchedulers.mainThread())
+      .compose(bindToLifecycle<Article>())
       .subscribe {
         activity.title = it.preview.title
         webView.loadData(prepareText(it.text), "text/html; charset=utf-8", "utf-8")
