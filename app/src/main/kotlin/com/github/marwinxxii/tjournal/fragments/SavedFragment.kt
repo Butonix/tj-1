@@ -9,8 +9,10 @@ import com.github.marwinxxii.tjournal.R
 import com.github.marwinxxii.tjournal.activities.MainActivity
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.service.ArticlesDAO
+import com.github.marwinxxii.tjournal.service.ArticlesService
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
-import kotlinx.android.synthetic.main.fragment_feed.*
+import com.github.marwinxxii.tjournal.widgets.ReadButtonController
+import kotlinx.android.synthetic.main.fragment_article_list_read.*
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import javax.inject.Inject
@@ -20,20 +22,21 @@ import javax.inject.Inject
  */
 class SavedFragment : BaseFragment() {
   @Inject lateinit var dao: ArticlesDAO
+  @Inject lateinit var service: ArticlesService
 
   override fun injectSelf() {
     (activity as MainActivity).component.inject(this)
   }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-    return inflater.inflate(R.layout.fragment_article_list, container, false)
+    return inflater.inflate(R.layout.fragment_article_list_read, container, false)
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     setTitle(0)
-    items.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+    article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
     val adapter = ArticlesAdapter(activity)
-    items.adapter = adapter
+    article_list.adapter = adapter
 
     dao.getSavedArticles()
       .subscribeOn(Schedulers.computation())
@@ -47,6 +50,8 @@ class SavedFragment : BaseFragment() {
         }
         setTitle(it.size)
       })//TODO handle error
+
+    ReadButtonController.run(service, this)
   }
 
   override fun onDestroyView() {

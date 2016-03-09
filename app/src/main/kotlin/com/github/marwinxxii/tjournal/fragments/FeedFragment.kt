@@ -9,16 +9,12 @@ import android.view.View
 import android.view.ViewGroup
 import com.github.marwinxxii.tjournal.R
 import com.github.marwinxxii.tjournal.activities.MainActivity
-import com.github.marwinxxii.tjournal.activities.ReadActivity
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
-import com.github.marwinxxii.tjournal.extensions.startActivityWithClass
-import com.github.marwinxxii.tjournal.extensions.toggleVisibility
-import com.github.marwinxxii.tjournal.service.ArticleCount
 import com.github.marwinxxii.tjournal.service.ArticlesService
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
-import kotlinx.android.synthetic.main.fragment_feed.*
+import com.github.marwinxxii.tjournal.widgets.ReadButtonController
+import kotlinx.android.synthetic.main.fragment_article_list_read.*
 import rx.android.schedulers.AndroidSchedulers
-import rx.schedulers.Schedulers
 import javax.inject.Inject
 
 /**
@@ -32,14 +28,14 @@ class FeedFragment : BaseFragment() {
   }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-    return inflater.inflate(R.layout.fragment_feed, container, false)
+    return inflater.inflate(R.layout.fragment_article_list_read, container, false)
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     setTitle(0)
-    items.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+    article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
     val adapter = ArticlesAdapter(activity)
-    items.adapter = adapter
+    article_list.adapter = adapter
     service.getArticles(0)
       .observeOn(AndroidSchedulers.mainThread())
       .compose(bindToLifecycle<List<ArticlePreview>>())
@@ -48,9 +44,7 @@ class FeedFragment : BaseFragment() {
         adapter.notifyDataSetChanged()
       }
 
-    read.setOnClickListener({
-      activity.startActivityWithClass(ReadActivity::class.java)
-    })
+    ReadButtonController.run(service, this)
 
     ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
       override fun onMove(Rv: RecyclerView, vh: RecyclerView.ViewHolder, vh2: RecyclerView.ViewHolder): Boolean {
@@ -63,26 +57,12 @@ class FeedFragment : BaseFragment() {
         adapter.items.removeAt(position)
         adapter.notifyItemRemoved(position)
       }
-    }).attachToRecyclerView(items)
+    }).attachToRecyclerView(article_list)
   }
 
   override fun onDestroyView() {
     //clearFindViewByIdCache()
     super.onDestroyView()
-  }
-
-  override fun onResume() {
-    super.onResume()
-    //TODO notify about changes
-    service.observeArticleCount()
-      .subscribeOn(Schedulers.computation())
-      .observeOn(AndroidSchedulers.mainThread())
-      .compose(bindToLifecycle<ArticleCount>())
-      .subscribe {
-        read.toggleVisibility(it.total > 0)
-        read.text = "Read ${it.loaded} / ${it.total}"
-        read.isEnabled = it.loaded > 0
-      }
   }
 
   private fun setTitle(count: Int) {

@@ -46,6 +46,7 @@ class ReadActivity : BaseActivity() {
     cache.getReadyArticlesIds()
       .subscribeOn(Schedulers.computation())
       .observeOn(AndroidSchedulers.mainThread())
+      .filter { it.size > 1 }//do not disable drawer with one article?
       .subscribe {
         val menu = drawer_menu.menu
         for (i: Int in it.indices) {
@@ -67,7 +68,7 @@ class ReadActivity : BaseActivity() {
   override fun onOptionsItemSelected(item: MenuItem?): Boolean {
     when (item?.itemId) {
       R.id.read -> {
-        cache.markArticleRead(articleIds.get(0))
+        cache.markArticleRead(articleIds[0])
           .subscribeOn(Schedulers.computation())
           .subscribe()
         articleIds.removeAt(0)
@@ -84,7 +85,7 @@ class ReadActivity : BaseActivity() {
   }
 
   private fun loadNextArticle() {
-    eventBus.post(LoadArticleRequestEvent(articleIds.get(0)))
+    eventBus.post(LoadArticleRequestEvent(articleIds[0]))
   }
 }
 

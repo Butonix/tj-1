@@ -1,6 +1,5 @@
 package com.github.marwinxxii.tjournal.fragments
 
-import android.support.v4.app.Fragment
 import dagger.Module
 import dagger.Provides
 import dagger.Subcomponent
@@ -12,20 +11,14 @@ import javax.inject.Scope
 @PerFragment
 @Subcomponent(modules = arrayOf(FragmentModule::class))
 interface FragmentComponent {
-  fun inject(fragment: FeedFragment)
-
-  fun inject(fragment: SavedFragment)
-
-  fun inject(fragment: ReadFragment)
-
-  fun inject(fragment: ArticleFragment)
+  fun fragment(): BaseFragment
 }
 
 @Module
-class FragmentModule(val fragment: Fragment) {
+class FragmentModule(val fragment: BaseFragment) {
   @Provides
   @PerFragment
-  fun fragment(): Fragment {
+  fun fragment(): BaseFragment {
     return fragment
   }
 }

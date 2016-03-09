@@ -10,7 +10,7 @@ import com.github.marwinxxii.tjournal.activities.MainActivity
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.service.ArticlesDAO
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
-import kotlinx.android.synthetic.main.fragment_feed.*
+import kotlinx.android.synthetic.main.fragment_article_list.*
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import javax.inject.Inject
@@ -31,9 +31,9 @@ class ReadFragment : BaseFragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     setTitle(0)
-    items.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+    article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
     val adapter = ArticlesAdapter(activity)
-    items.adapter = adapter
+    article_list.adapter = adapter
     dao.getReadArticles()
       .subscribeOn(Schedulers.computation())
       .observeOn(AndroidSchedulers.mainThread())
