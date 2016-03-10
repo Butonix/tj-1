@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import com.github.marwinxxii.tjournal.R
 import com.github.marwinxxii.tjournal.activities.MainActivity
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
-import com.github.marwinxxii.tjournal.service.ArticlesDAO
 import com.github.marwinxxii.tjournal.service.ArticlesService
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
 import com.github.marwinxxii.tjournal.widgets.ReadButtonController
@@ -21,7 +20,6 @@ import javax.inject.Inject
  * Created by alexey on 27.02.16.
  */
 class SavedFragment : BaseFragment() {
-  @Inject lateinit var dao: ArticlesDAO
   @Inject lateinit var service: ArticlesService
 
   override fun injectSelf() {
@@ -35,23 +33,26 @@ class SavedFragment : BaseFragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     setTitle(0)
     article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-    val adapter = ArticlesAdapter(activity)
-    article_list.adapter = adapter
+    article_list.adapter = ArticlesAdapter(activity)
+    ReadButtonController.run(service, this)
+  }
 
-    dao.getSavedArticles()
+  override fun onResume() {
+    super.onResume()
+    service.getSavedPreviews()//TODO notify about changes
       .subscribeOn(Schedulers.computation())
       .observeOn(AndroidSchedulers.mainThread())
       .compose(bindToLifecycle<List<ArticlePreview>>())
       .subscribe({
+        val adapter = article_list.adapter as ArticlesAdapter
+        adapter.items.clear()
         if (it.isEmpty()) {
         } else {
           adapter.items.addAll(it)
           adapter.notifyDataSetChanged()
         }
-        setTitle(it.size)
+        //setTitle(it.size)
       })//TODO handle error
-
-    ReadButtonController.run(service, this)
   }
 
   override fun onDestroyView() {

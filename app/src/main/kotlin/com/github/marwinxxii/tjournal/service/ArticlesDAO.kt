@@ -100,11 +100,11 @@ class ArticlesDAO(private val db: DBService) {
     }
   }
 
-  fun getSavedArticles(): Observable<List<ArticlePreview>> {
+  fun getPreviews(where: String): Observable<List<ArticlePreview>> {
     return Observable.fromCallable {
       db.getReadable()
         .select("article", "*")
-        .where("status=" + READY)
+        .where(where)
         .exec {
           val result = mutableListOf<ArticlePreview>()
           while (this.moveToNext()) {

@@ -48,6 +48,11 @@ class ArticlesService(
         )
       }
   }
+
+  fun getSavedPreviews(): Observable<List<ArticlePreview>> {
+    return dao.observeArticleChanges().startWith("")
+      .flatMap { dao.getPreviews("status=" + READY) }
+  }
 }
 
 data class ArticleCount(val total: Int, val loaded: Int)
