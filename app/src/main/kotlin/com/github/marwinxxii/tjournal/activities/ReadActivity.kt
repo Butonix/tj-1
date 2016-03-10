@@ -46,17 +46,12 @@ class ReadActivity : BaseActivity() {
     cache.getReadyArticlesIds()
       .subscribeOn(Schedulers.computation())
       .observeOn(AndroidSchedulers.mainThread())
-      .filter { it.size > 1 }//do not disable drawer with one article?
       .subscribe {
-        val menu = drawer_menu.menu
-        for (i: Int in it.indices) {
-          val idTitle = it[i]
-          articleIds.add(idTitle.first)
-          menu.add(0, idTitle.first, i, idTitle.second).isChecked = i == 0
-        }
-        menu.setGroupCheckable(0, true, true)
+        articleIds.addAll(it.map { it.first } )//TODO optimize
         loadNextArticle()
-        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+        if (it.size > 1) {//do not disable drawer with one article?
+          initMenu(it)
+        }
       }
   }
 
@@ -86,6 +81,16 @@ class ReadActivity : BaseActivity() {
 
   private fun loadNextArticle() {
     eventBus.post(LoadArticleRequestEvent(articleIds[0]))
+  }
+
+  private fun initMenu(articles: List<Pair<Int, String>>) {
+    val menu = drawer_menu.menu
+    for (i: Int in articles.indices) {
+      val idTitle = articles[i]
+      menu.add(0, idTitle.first, i, idTitle.second).isChecked = i == 0
+    }
+    menu.setGroupCheckable(0, true, true)
+    drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
   }
 }
 
