@@ -17,12 +17,19 @@ class ArticlesService(
 
   fun getArticles(page: Int): Observable<List<ArticlePreview>> {
     //TODO use deserializer?
-    return api.getNews(page * 30).map {
-      it.map {
-        val intro = Jsoup.parse(it.intro).text()
-        it.copy(intro = intro)
+    return api.getNews(page * 30)//TODO switch to computation
+      .flatMap { previews ->
+        dao.getSavedIds(previews.map { it.id })
+          .map { savedIds ->
+            previews.filter { preview -> !savedIds.contains(preview.id) }
+          }
       }
-    }
+      .map {
+        it.map {
+          val intro = Jsoup.parse(it.intro).text()
+          it.copy(intro = intro)
+        }
+      }
   }
 
   fun getArticle(preview: ArticlePreview): Observable<Article> {
@@ -59,6 +66,6 @@ data class ArticleCount(val total: Int, val loaded: Int)
 
 const val WAITING = 0
 const val LOADING: Int = 1
-const val READY: Int = 2
-const val ERROR: Int = 3
+const val ERROR: Int = 2
+const val READY: Int = 3
 const val READ: Int = 4

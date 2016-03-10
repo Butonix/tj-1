@@ -71,6 +71,16 @@ class ArticlesDAO(private val db: DBService) {
     }
   }
 
+  fun getSavedIds(ids: List<Int>): Observable<List<Int>> {
+    //TODO batch ids
+    return Observable.fromCallable {
+      db.getReadable()
+        .select("article", "id")
+        .where("status>=" + READY + " AND id in (" + ids.joinToString(",") + ")")
+        .parseList(IntParser)
+    }
+  }
+
   fun observeArticleChanges(): Observable<Any> {
     return changesSubject
   }
