@@ -1,6 +1,7 @@
 package com.github.marwinxxii.tjournal.activities
 
 import android.os.Bundle
+import android.support.design.widget.NavigationView
 import android.support.v4.widget.DrawerLayout
 import android.view.Menu
 import android.view.MenuItem
@@ -25,6 +26,7 @@ class ReadActivity : BaseActivity() {
   @Inject lateinit var cache: ArticlesDAO
   @Inject lateinit var eventBus: EventBus
   val articleIds: MutableList<Int> = mutableListOf()
+  lateinit var articleMenu: ArticlesMenu
 
   override fun initComponent() {
     component = getAppComponent().readActivity(ActivityModule(this))
@@ -35,12 +37,8 @@ class ReadActivity : BaseActivity() {
     setContentView(R.layout.activity_read)
     setSupportActionBar(toolbar)
     supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-    drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-    drawer_menu.setNavigationItemSelectedListener {
-      it.isChecked = true
-      eventBus.post(LoadArticleRequestEvent(it.itemId))//TODO method
-      drawer.closeDrawers()
-      true
+    articleMenu = ArticlesMenu(drawer_menu, drawer) {
+      loadArticle(it.itemId)
     }
     component.inject(this)
     cache.getReadyArticlesIds()
@@ -48,10 +46,8 @@ class ReadActivity : BaseActivity() {
       .observeOn(AndroidSchedulers.mainThread())
       .subscribe {
         articleIds.addAll(it.map { it.first } )//TODO optimize
+        articleMenu.populateWith(it)
         loadNextArticle()
-        if (it.size > 1) {//do not disable drawer with one article?
-          initMenu(it)
-        }
       }
   }
 
@@ -63,10 +59,12 @@ class ReadActivity : BaseActivity() {
   override fun onOptionsItemSelected(item: MenuItem?): Boolean {
     when (item?.itemId) {
       R.id.read -> {
-        cache.markArticleRead(articleIds[0])
+        val id = articleIds[0]
+        cache.markArticleRead(id)
           .subscribeOn(Schedulers.computation())
           .subscribe()
         articleIds.removeAt(0)
+        articleMenu.removeItem(id)
         if (articleIds.size > 0) {
           loadNextArticle()
         } else {
@@ -80,17 +78,13 @@ class ReadActivity : BaseActivity() {
   }
 
   private fun loadNextArticle() {
-    eventBus.post(LoadArticleRequestEvent(articleIds[0]))
+    val id = articleIds[0]
+    loadArticle(id)
+    articleMenu.setChecked(id)
   }
 
-  private fun initMenu(articles: List<Pair<Int, String>>) {
-    val menu = drawer_menu.menu
-    for (i: Int in articles.indices) {
-      val idTitle = articles[i]
-      menu.add(0, idTitle.first, i, idTitle.second).isChecked = i == 0
-    }
-    menu.setGroupCheckable(0, true, true)
-    drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+  private fun loadArticle(id: Int) {
+    eventBus.post(LoadArticleRequestEvent(id))
   }
 }
 
@@ -100,4 +94,60 @@ interface ReadActivityComponent : AbstractActivityComponent {
   fun inject(activity: ReadActivity)
 
   fun inject(fragment: ArticleFragment)
+}
+
+class ArticlesMenu {
+  val menu: Menu
+  val drawer: DrawerLayout
+  private var enabled: Boolean = false
+
+  constructor(view: NavigationView, drawer: DrawerLayout, listener: (MenuItem) -> Unit) {
+    this.menu = view.menu
+    this.drawer = drawer
+    init(view, listener)
+  }
+
+  private fun init(menuView: NavigationView, listener: (MenuItem) -> Unit) {
+    enable(enabled)
+    menuView.setNavigationItemSelectedListener {
+      it.isChecked = true
+      drawer.closeDrawers()
+      listener(it)
+      true
+    }
+  }
+
+  fun populateWith(articleIdTitlePairs: List<Pair<Int, String>>) {
+    enable(articleIdTitlePairs.size > 1)//do not disable drawer with one article?
+    if (!enabled) {
+      return
+    }
+    for (i: Int in articleIdTitlePairs.indices) {
+      val idTitle = articleIdTitlePairs[i]
+      menu.add(0, idTitle.first, i, idTitle.second)
+    }
+    menu.setGroupCheckable(0, true, true)
+  }
+
+  fun removeItem(id: Int) {
+    if (enabled) {
+      menu.removeItem(id)
+      enable(menu.size() != 1)
+    }
+  }
+
+  fun setChecked(id: Int) {
+    if (enabled) {
+      menu.findItem(id).isChecked = true
+    }
+  }
+
+  private fun enable(enabled: Boolean) {
+    this.enabled = enabled
+    if (enabled) {
+      drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+    } else {
+      drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+    }
+  }
 }
