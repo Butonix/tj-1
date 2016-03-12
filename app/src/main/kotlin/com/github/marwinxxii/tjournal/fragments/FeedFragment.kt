@@ -14,7 +14,9 @@ import com.github.marwinxxii.tjournal.service.ArticlesService
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
 import com.github.marwinxxii.tjournal.widgets.ReadButtonController
 import kotlinx.android.synthetic.main.fragment_article_list_read.*
+import org.jetbrains.anko.toast
 import rx.android.schedulers.AndroidSchedulers
+import rx.lang.kotlin.subscribeWith
 import javax.inject.Inject
 
 /**
@@ -39,9 +41,14 @@ class FeedFragment : BaseFragment() {
     service.getArticles(0)
       .observeOn(AndroidSchedulers.mainThread())
       .compose(bindToLifecycle<List<ArticlePreview>>())
-      .subscribe {
-        adapter.items.addAll(it)
-        adapter.notifyDataSetChanged()
+      .subscribeWith {
+        onNext {
+          adapter.items.addAll(it)
+          adapter.notifyDataSetChanged()
+        }
+        onError {
+          activity.toast("Error loading articles")//TODO
+        }
       }
 
     ReadButtonController.run(service, this)
