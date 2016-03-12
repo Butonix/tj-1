@@ -10,6 +10,7 @@ import com.github.marwinxxii.tjournal.activities.MainActivity
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.service.ArticlesService
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
+import com.github.marwinxxii.tjournal.widgets.PermanentImageLoadInteractor
 import com.github.marwinxxii.tjournal.widgets.ReadButtonController
 import kotlinx.android.synthetic.main.fragment_article_list_read.*
 import rx.android.schedulers.AndroidSchedulers
@@ -21,6 +22,7 @@ import javax.inject.Inject
  */
 class SavedFragment : BaseFragment() {
   @Inject lateinit var service: ArticlesService
+  @Inject lateinit var imageInteractor: PermanentImageLoadInteractor
 
   override fun injectSelf() {
     (activity as MainActivity).component.inject(this)
@@ -33,7 +35,7 @@ class SavedFragment : BaseFragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     setTitle(0)
     article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-    article_list.adapter = ArticlesAdapter(activity)
+    article_list.adapter = ArticlesAdapter(imageInteractor)
     ReadButtonController.run(service, this)
   }
 

@@ -1,5 +1,6 @@
 package com.github.marwinxxii.tjournal.service
 
+import com.github.marwinxxii.tjournal.CompositeDiskStorage
 import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.network.TJournalAPI
@@ -13,7 +14,8 @@ import rx.Observable
 class ArticlesService(
   private val api: TJournalAPI,
   private val dao: ArticlesDAO,
-  private val downloader: ArticleDownloadService) {
+  private val downloader: ArticleDownloadService,
+  private val imageDiskStorage: CompositeDiskStorage) {
 
   fun getArticles(page: Int): Observable<List<ArticlePreview>> {
     //TODO use deserializer?
@@ -41,6 +43,16 @@ class ArticlesService(
               .doOnNext { text -> dao.saveText(saved._id, text) }
               //TODO handle error
               .map { Article(saved, it) }
+              .zipWith(
+                Observable.defer {
+                  if (saved.cover != null) {
+                    imageDiskStorage.copyToPermanent(saved.cover.thumbnailUrl)
+                  }
+                  Observable.just(true)
+                },
+
+                { article, copiedTrue -> article }
+              )
           }
       )
   }

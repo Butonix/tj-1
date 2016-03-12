@@ -1,12 +1,12 @@
 package com.github.marwinxxii.tjournal
 
 import android.app.Application
-import com.github.marwinxxii.tjournal.activities.*
+import com.github.marwinxxii.tjournal.activities.ActivityModule
+import com.github.marwinxxii.tjournal.activities.MainActivityComponent
+import com.github.marwinxxii.tjournal.activities.ReadActivityComponent
 import com.github.marwinxxii.tjournal.network.NetworkModule
 import com.github.marwinxxii.tjournal.service.ArticlesModule
 import com.github.marwinxxii.tjournal.service.DBModule
-import com.nostra13.universalimageloader.core.ImageLoader
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration
 import dagger.Component
 import dagger.Module
 import dagger.Provides
@@ -25,7 +25,6 @@ class App : Application() {
     component = DaggerAppComponent.builder()
       .appModule(AppModule(this))
       .build()
-    ImageLoader.getInstance().init(ImageLoaderConfiguration.createDefault(this))
   }
 }
 
@@ -46,7 +45,8 @@ class EventBus {
   AppModule::class,
   NetworkModule::class,
   DBModule::class,
-  ArticlesModule::class)
+  ArticlesModule::class,
+  ImageLoaderModule::class)
 )
 interface AppComponent {
   fun app(): App
