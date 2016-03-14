@@ -30,6 +30,18 @@ class ArticlesDAO(private val db: DBService) {
       .subscribeOn(Schedulers.computation())
   }
 
+  fun getArticleSync(id: Int): Article? {
+    return db.getReadable()
+      .select("article")
+      .where("id=" + id)
+      .exec {
+        if (!this.moveToFirst()) {
+          return@exec null
+        }
+        Article(readPreview(this), this.getString("text")!!)
+      }
+  }
+
   fun enqueue(preview: ArticlePreview): Observable<ArticlePreview> {
     return Observable.fromCallable {
       val _id = db.getWritable().insert("article",

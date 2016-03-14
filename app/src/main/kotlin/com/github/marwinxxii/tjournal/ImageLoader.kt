@@ -137,10 +137,15 @@ class CompositeDiskStorage : DiskCache {
     throw UnsupportedOperationException("Can't get root directory for composite storage")
   }
 
+  fun getPermanent(uri: String): File? {
+    return permanentCache.get(uri)
+  }
+
   fun copyToPermanent(uri: String) {
     val file = temporaryCache.get(uri)
     if (file != null) {
       file.renameTo(File(permanentCache.directory, file.name))
+      //FIXME correct removal from temp
     }
   }
 

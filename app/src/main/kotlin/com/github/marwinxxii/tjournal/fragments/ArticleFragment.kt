@@ -4,13 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.github.marwinxxii.tjournal.CompositeDiskStorage
 import com.github.marwinxxii.tjournal.EventBus
 import com.github.marwinxxii.tjournal.R
 import com.github.marwinxxii.tjournal.activities.ReadActivity
-import com.github.marwinxxii.tjournal.entities.Article
-import com.github.marwinxxii.tjournal.service.ArticlesDAO
+import com.github.marwinxxii.tjournal.service.ArticlesService
+import com.github.marwinxxii.tjournal.widgets.ArticleWebViewController
 import kotlinx.android.synthetic.main.fragment_article.*
-import rx.android.schedulers.AndroidSchedulers
 import javax.inject.Inject
 
 /**
@@ -18,7 +18,9 @@ import javax.inject.Inject
  */
 class ArticleFragment : BaseFragment() {
   @Inject lateinit var eventBus: EventBus
-  @Inject lateinit var dao: ArticlesDAO
+  @Inject lateinit var service: ArticlesService
+  @Inject lateinit var imageCache: CompositeDiskStorage
+  lateinit var webViewController: ArticleWebViewController
 
   override fun injectSelf() {
     (activity as ReadActivity).component.inject(this)
@@ -30,36 +32,18 @@ class ArticleFragment : BaseFragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
-    webView.visibility
+    webViewController = ArticleWebViewController(webView, this, imageCache, service)
     //TODO BIND lifecycle
     eventBus.observe(LoadArticleRequestEvent::class.java)
       .compose(bindToLifecycle<LoadArticleRequestEvent>())
-      .subscribe { loadArticle(it.id) }
+      .subscribe { webViewController.loadArticle(it.id) }
     if (arguments != null && arguments.containsKey(KEY_ID)) {
-      loadArticle(arguments.getInt(KEY_ID))
+      webViewController.loadArticle(arguments.getInt(KEY_ID))
     }
   }
 
   override fun onDestroyView() {
     super.onDestroyView()
-  }
-
-  fun loadArticle(id: Int) {
-    dao.getArticle(id)
-      .observeOn(AndroidSchedulers.mainThread())
-      .compose(bindToLifecycle<Article>())
-      .subscribe {
-        activity.title = it.preview.title
-        webView.loadData(prepareText(it.text), "text/html; charset=utf-8", "utf-8")
-      }
-  }
-
-  //TODO move to background thread
-  fun prepareText(text: String): String {
-    return "<!doctype html><html><head><meta charset=\"utf-8\">" +
-      "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" +
-      "<style>article img { max-width: 100%;}</style>" +
-      "</head><body>$text</body>"
   }
 
   companion object {

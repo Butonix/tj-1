@@ -49,12 +49,16 @@ class ArticlesService(
                     imageDiskStorage.copyToPermanent(saved.cover.thumbnailUrl)
                   }
                   Observable.just(true)
-                },
+                },//TODO handle error?
 
                 { article, copiedTrue -> article }
               )
           }
       )
+  }
+
+  fun getArticle(id: Int): Article? {
+    return dao.getArticleSync(id)
   }
 
   fun observeArticleCount(): Observable<ArticleCount> {
