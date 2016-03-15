@@ -1,5 +1,7 @@
 package com.github.marwinxxii.tjournal.widgets
 
+import android.content.Intent
+import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -33,6 +35,17 @@ class ArticleWebViewController {
 }
 
 class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: ArticlesService) : WebViewClient() {
+  override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+    val uri = Uri.parse(url)
+    if (uri.authority == "youtube.com" || uri.authority == "m.youtube.com" || uri.authority == "www.youtube.com") {
+      val intent = Intent(Intent.ACTION_VIEW, uri)
+      intent.setPackage("com.google.android.youtube")
+      view.context.startActivity(intent)
+      return true
+    }
+    return false
+  }
+
   override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
     val url = request.url
     if (request.method == "GET") {

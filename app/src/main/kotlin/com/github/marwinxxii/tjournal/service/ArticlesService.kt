@@ -1,11 +1,15 @@
 package com.github.marwinxxii.tjournal.service
 
+import android.net.Uri
 import com.github.marwinxxii.tjournal.CompositeDiskStorage
 import com.github.marwinxxii.tjournal.ImageLoaderImpl
 import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.network.TJournalAPI
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
+import org.jsoup.parser.Tag
 import rx.Observable
 
 /**
@@ -59,19 +63,14 @@ class ArticlesService(
   }
 
   private fun downloadArticle(url: String): Observable<String> {
-    return downloader.downloadArticle(url)
-      .flatMap {
-        Observable.zip(
-          Observable.fromCallable { it.outerHtml() },
-          Observable.fromCallable {
-            it.getElementsByTag("img")
-              .map { it.attr("src") }
-              .filter { it != null && !it.isEmpty() }
-              .forEach { imageLoader.downloadImage(it, true) }
-          },
-          { text, imagesLoaded -> text }
-        )
+    return downloader.downloadArticle(url).map {
+      val parser = ArticleHtmlParser(it)
+      parser.replaceVideosWithThumbnails()
+      for (image in parser.findImageUrls()) {
+        imageLoader.downloadImage(image, true)//TODO check image load result?
       }
+      parser.getHtml()
+    }
   }
 
   fun getArticle(id: Int): Article? {
@@ -102,3 +101,43 @@ const val LOADING: Int = 1
 const val ERROR: Int = 2
 const val READY: Int = 3
 const val READ: Int = 4
+
+class ArticleHtmlParser(document: Document) {
+  private val article = getArticle(document)
+
+  fun getArticle(document: Document): Element {
+    return document.getElementsByTag("article").first()
+  }
+
+  fun findImageUrls(): List<String> {
+    return article.getElementsByTag("img")
+      .map { it.attr("src") }
+      .filter { it != null && !it.isEmpty() }
+  }
+
+  fun replaceVideosWithThumbnails(): ArticleHtmlParser {
+    for (iframe in article.getElementsByTag("iframe")) {
+      val src: String? = iframe.attr("src")
+      if (src != null) {
+        iframe.replaceWith(createIframeReplacement(src))
+      }
+    }
+    return this
+  }
+
+  fun createIframeReplacement(src: String): Element {
+    val videoId = Uri.parse(src).encodedPath.replaceFirst("/embed/", "")
+    val link = Element(Tag.valueOf("a"), article.baseUri())
+    link.attr("href", "https://www.youtube.com/watch?v=$videoId")//TODO styles
+
+    val img = Element(Tag.valueOf("img"), article.baseUri())
+    img.attr("src", "https://img.youtube.com/vi/$videoId/0.jpg")//TODO choose image size
+
+    link.appendChild(img)
+    return link
+  }
+
+  fun getHtml(): String {
+    return article.outerHtml()
+  }
+}
