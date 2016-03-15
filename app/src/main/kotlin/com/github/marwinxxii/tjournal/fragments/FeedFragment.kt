@@ -13,7 +13,7 @@ import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.service.ArticlesService
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
 import com.github.marwinxxii.tjournal.widgets.ReadButtonController
-import com.github.marwinxxii.tjournal.widgets.TempImageLoadInteractor
+import com.github.marwinxxii.tjournal.widgets.TempImagePresenter
 import kotlinx.android.synthetic.main.fragment_article_list_read.*
 import org.jetbrains.anko.toast
 import rx.android.schedulers.AndroidSchedulers
@@ -25,7 +25,7 @@ import javax.inject.Inject
  */
 class FeedFragment : BaseFragment() {
   @Inject lateinit var service: ArticlesService
-  @Inject lateinit var imageInteractor: TempImageLoadInteractor
+  @Inject lateinit var imageInteractor: TempImagePresenter
 
   override fun injectSelf() {
     (activity as MainActivity).component.inject(this)

@@ -9,7 +9,7 @@ import com.github.marwinxxii.tjournal.R
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import javax.inject.Inject
 
-class ArticlesAdapter(val imageInteractor: ImageLoadInteractor) : RecyclerView.Adapter<ArticleViewHolder>() {
+class ArticlesAdapter(val imagePresenter: ImagePresenter) : RecyclerView.Adapter<ArticleViewHolder>() {
   var inflater: LayoutInflater? = null
   val items: MutableList<ArticlePreview> = mutableListOf()
 
@@ -26,15 +26,15 @@ class ArticlesAdapter(val imageInteractor: ImageLoadInteractor) : RecyclerView.A
       inflater = LayoutInflater.from(parent.context)
     }
     val view = inflater!!.inflate(R.layout.widget_article_preview, parent, false)
-    return ArticleViewHolder(view, imageInteractor)
+    return ArticleViewHolder(view, imagePresenter)
   }
 }
 
-interface ImageLoadInteractor {
+interface ImagePresenter {
   fun displayImage(url: String, view: ImageView)
 }
 
-class TempImageLoadInteractor : ImageLoadInteractor {
+class TempImagePresenter : ImagePresenter {
   private val loader: ImageLoaderImpl
 
   @Inject
@@ -47,7 +47,7 @@ class TempImageLoadInteractor : ImageLoadInteractor {
   }
 }
 
-class PermanentImageLoadInteractor : ImageLoadInteractor {
+class PermanentImagePresenter : ImagePresenter {
   private val loader: ImageLoaderImpl
 
   @Inject

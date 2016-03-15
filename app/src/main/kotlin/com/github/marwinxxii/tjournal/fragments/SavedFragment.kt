@@ -10,7 +10,7 @@ import com.github.marwinxxii.tjournal.activities.MainActivity
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.service.ArticlesService
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
-import com.github.marwinxxii.tjournal.widgets.PermanentImageLoadInteractor
+import com.github.marwinxxii.tjournal.widgets.PermanentImagePresenter
 import com.github.marwinxxii.tjournal.widgets.ReadButtonController
 import kotlinx.android.synthetic.main.fragment_article_list_read.*
 import rx.android.schedulers.AndroidSchedulers
@@ -22,7 +22,7 @@ import javax.inject.Inject
  */
 class SavedFragment : BaseFragment() {
   @Inject lateinit var service: ArticlesService
-  @Inject lateinit var imageInteractor: PermanentImageLoadInteractor
+  @Inject lateinit var imageInteractor: PermanentImagePresenter
 
   override fun injectSelf() {
     (activity as MainActivity).component.inject(this)

@@ -7,7 +7,7 @@ import com.github.marwinxxii.tjournal.extensions.toggleVisibility
 import com.github.marwinxxii.tjournal.extensions.toggleVisibilityAndText
 import kotlinx.android.synthetic.main.widget_article_preview.view.*
 
-class ArticleViewHolder(itemView: View, val imageLoader: ImageLoadInteractor) : RecyclerView.ViewHolder(itemView) {
+class ArticleViewHolder(itemView: View, val imageLoader: ImagePresenter) : RecyclerView.ViewHolder(itemView) {
   fun bind(article: ArticlePreview) {
     itemView.title.text = article.title
     itemView.intro.text = article.intro
