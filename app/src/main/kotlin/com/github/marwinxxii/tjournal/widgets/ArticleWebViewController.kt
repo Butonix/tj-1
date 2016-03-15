@@ -5,6 +5,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.github.marwinxxii.tjournal.CompositeDiskStorage
+import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.extensions.generator
 import com.github.marwinxxii.tjournal.fragments.BaseFragment
 import com.github.marwinxxii.tjournal.service.ArticlesService
@@ -58,8 +59,14 @@ class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: Articl
     return WebResourceResponse("text/html", "utf-8", ArticleInputStream(
       generator {
         yieldReturn(articleHead)
+        //TODO better solution
+        var article: Article? = null
         yieldReturn {
-          service.getArticle(url.removePrefix("tjournal:").toInt())?.text ?: ""
+          article = service.getArticle(url.removePrefix("tjournal:").toInt())
+          "<h2>" + (article?.preview?.title ?: "") + "</h2>"
+        }
+        yieldReturn {
+          article?.text ?: "Article could not be loaded, try again"
         }
         yieldReturn("</body></html>")
       }
