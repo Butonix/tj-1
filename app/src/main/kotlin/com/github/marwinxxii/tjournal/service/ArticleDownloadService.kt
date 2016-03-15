@@ -6,6 +6,7 @@ import com.squareup.okhttp.OkHttpClient
 import com.squareup.okhttp.Request
 import com.squareup.okhttp.Response
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import rx.Observable
 import rx.Subscriber
 import java.io.IOException
@@ -13,18 +14,18 @@ import java.io.IOException
 /**
  * Created by alexey on 21.02.16.
  */
-class ArticleDownloadService(val httpClient: OkHttpClient) {
-  fun downloadArticleText(url: String): Observable<String> {
+class ArticleDownloadService(private val httpClient: OkHttpClient) {
+  fun downloadArticle(url: String): Observable<Element> {
     return observeNetworkRequest(url)
       //TODO observe on computation?
-      .filterNonNull()
       .map { response ->
-        val document = Jsoup.parse(response.body().byteStream(), "UTF-8", url)
-        document.getElementsByTag("article").first().outerHtml()
+        Jsoup.parse(response.body().byteStream(), "UTF-8", url)
+          .getElementsByTag("article").first()
       }
+      .filterNonNull()
   }
 
-  private fun observeNetworkRequest(url: String): Observable<Response?> {
+  private fun observeNetworkRequest(url: String): Observable<Response> {
     return Observable.create { subscriber ->
       httpClient
         .newCall(Request.Builder().get().url(url).build())
@@ -33,8 +34,8 @@ class ArticleDownloadService(val httpClient: OkHttpClient) {
   }
 }
 
-class SubscriberCallback(val subscriber: Subscriber<in Response?>) : Callback {
-  override fun onResponse(response: Response?) {
+class SubscriberCallback(val subscriber: Subscriber<in Response>) : Callback {
+  override fun onResponse(response: Response) {
     if (!subscriber.isUnsubscribed) {
       subscriber.onNext(response)
       //TODO handle HTTP erorrs

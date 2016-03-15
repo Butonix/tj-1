@@ -29,12 +29,7 @@ class ImageLoaderImpl {
       ImageLoaderConfiguration.Builder(context)
         .diskCache(diskCache)
         .imageDownloader(ImageDownloaderImpl(DefaultConfigurationFactory.createImageDownloader(context)))
-        .defaultDisplayImageOptions(DisplayImageOptions.Builder()
-          .cacheInMemory(true)
-          .cacheOnDisk(true)
-          .resetViewBeforeLoading(true)
-          .build()
-        )
+        .defaultDisplayImageOptions(getDefaultImageOptions().build())
         .writeDebugLogs()
         .build()
     )
@@ -46,6 +41,18 @@ class ImageLoaderImpl {
     } else {
       loader.displayImage(uri, view)
     }
+  }
+
+  fun downloadImage(uri: String, permanent: Boolean = false): Bitmap {
+    return loader.loadImageSync(if (permanent) toPermanentUri(uri) else uri,
+      getDefaultImageOptions().cacheInMemory(false).build())
+  }
+
+  fun getDefaultImageOptions(): DisplayImageOptions.Builder {
+    return DisplayImageOptions.Builder()
+      .cacheInMemory(true)
+      .cacheOnDisk(true)
+      .resetViewBeforeLoading(true)
   }
 }
 

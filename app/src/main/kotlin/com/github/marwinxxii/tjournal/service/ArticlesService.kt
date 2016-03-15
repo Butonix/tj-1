@@ -1,6 +1,7 @@
 package com.github.marwinxxii.tjournal.service
 
 import com.github.marwinxxii.tjournal.CompositeDiskStorage
+import com.github.marwinxxii.tjournal.ImageLoaderImpl
 import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.network.TJournalAPI
@@ -15,7 +16,8 @@ class ArticlesService(
   private val api: TJournalAPI,
   private val dao: ArticlesDAO,
   private val downloader: ArticleDownloadService,
-  private val imageDiskStorage: CompositeDiskStorage) {
+  private val imageDiskStorage: CompositeDiskStorage,
+  private val imageLoader: ImageLoaderImpl) {
 
   fun getArticles(page: Int): Observable<List<ArticlePreview>> {
     //TODO use deserializer?
@@ -39,22 +41,37 @@ class ArticlesService(
       .switchIfEmpty(
         dao.enqueue(preview)
           .flatMap { saved ->
-            downloader.downloadArticleText(saved.url)
+            downloadArticle(preview.url)
               .doOnNext { text -> dao.saveText(saved._id, text) }
               //TODO handle error
               .map { Article(saved, it) }
               .zipWith(
-                Observable.defer {
+                Observable.fromCallable {
                   if (saved.cover != null) {
                     imageDiskStorage.copyToPermanent(saved.cover.thumbnailUrl)
                   }
-                  Observable.just(true)
-                },//TODO handle error?
+                }, //TODO handle error?
 
-                { article, copiedTrue -> article }
+                { article, coverCopied -> article }
               )
           }
       )
+  }
+
+  private fun downloadArticle(url: String): Observable<String> {
+    return downloader.downloadArticle(url)
+      .flatMap {
+        Observable.zip(
+          Observable.fromCallable { it.outerHtml() },
+          Observable.fromCallable {
+            it.getElementsByTag("img")
+              .map { it.attr("src") }
+              .filter { it != null && !it.isEmpty() }
+              .forEach { imageLoader.downloadImage(it, true) }
+          },
+          { text, imagesLoaded -> text }
+        )
+      }
   }
 
   fun getArticle(id: Int): Article? {

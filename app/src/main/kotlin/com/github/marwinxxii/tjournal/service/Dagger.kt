@@ -1,6 +1,7 @@
 package com.github.marwinxxii.tjournal.service
 
 import com.github.marwinxxii.tjournal.CompositeDiskStorage
+import com.github.marwinxxii.tjournal.ImageLoaderImpl
 import com.github.marwinxxii.tjournal.network.TJournalAPI
 import com.squareup.okhttp.OkHttpClient
 import dagger.Module
@@ -17,8 +18,9 @@ class ArticlesModule {
   @Singleton
   fun provideService(api: TJournalAPI, cache: ArticlesDAO,
     downloader: ArticleDownloadService,
-    imageDiskStorage: CompositeDiskStorage): ArticlesService {
-    return ArticlesService(api, cache, downloader, imageDiskStorage)
+    imageDiskStorage: CompositeDiskStorage,
+    imageLoader: ImageLoaderImpl): ArticlesService {
+    return ArticlesService(api, cache, downloader, imageDiskStorage, imageLoader)
   }
 
   @Provides
