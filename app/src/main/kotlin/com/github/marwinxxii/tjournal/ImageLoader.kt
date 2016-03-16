@@ -43,8 +43,8 @@ class ImageLoaderImpl {
     }
   }
 
-  fun downloadImage(uri: String, permanent: Boolean = false): Bitmap {
-    return loader.loadImageSync(if (permanent) toPermanentUri(uri) else uri,
+  fun downloadImage(uri: String, permanent: Boolean = false) {
+    loader.loadImageSync(if (permanent) toPermanentUri(uri) else uri,
       getDefaultImageOptions().cacheInMemory(false).build())
   }
 

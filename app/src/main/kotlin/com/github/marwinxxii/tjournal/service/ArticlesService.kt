@@ -46,6 +46,7 @@ class ArticlesService(
         dao.enqueue(preview)
           .flatMap { saved ->
             downloadArticle(preview.url)
+              //TODO change text saving
               .doOnNext { text -> dao.saveText(saved._id, text) }
               //TODO handle error
               .map { Article(saved, it) }
