@@ -145,7 +145,8 @@ class CompositeDiskStorage : DiskCache {
   }
 
   fun getPermanent(uri: String): File? {
-    return permanentCache.get(uri)
+    val file = permanentCache.get(uri)
+    return if (file?.exists() ?: false) file else null
   }
 
   fun copyToPermanent(uri: String) {

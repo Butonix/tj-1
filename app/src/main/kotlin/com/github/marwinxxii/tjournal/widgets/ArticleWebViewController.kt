@@ -9,7 +9,6 @@ import android.webkit.WebViewClient
 import com.github.marwinxxii.tjournal.CompositeDiskStorage
 import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.extensions.generator
-import com.github.marwinxxii.tjournal.fragments.BaseFragment
 import com.github.marwinxxii.tjournal.service.ArticlesService
 import java.io.FileInputStream
 import java.io.InputStream
@@ -17,16 +16,11 @@ import javax.inject.Inject
 
 class ArticleWebViewController {
   val view: WebView
-  val fragment: BaseFragment
-  val service: ArticlesService
 
   @Inject
-  constructor(view: WebView, fragment: BaseFragment,
-    imageCache: CompositeDiskStorage, service: ArticlesService) {
+  constructor(view: WebView, imageCache: CompositeDiskStorage, service: ArticlesService) {
     this.view = view
     this.view.setWebViewClient(ImageInterceptor(imageCache, service))
-    this.fragment = fragment
-    this.service = service
   }
 
   fun loadArticle(id: Int) {
@@ -88,7 +82,7 @@ class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: Articl
 
   private fun tryLoadImage(url: String): WebResourceResponse? {
     val file = imageCache.getPermanent(url)
-    if (file != null && file.exists() && !file.isDirectory) {
+    if (file != null && !file.isDirectory) {
       return WebResourceResponse("image/jpeg", null, FileInputStream(file))
     }
     return null

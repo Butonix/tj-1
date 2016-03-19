@@ -32,7 +32,7 @@ class ArticleFragment : BaseFragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
-    webViewController = ArticleWebViewController(webView, this, imageCache, service)
+    webViewController = ArticleWebViewController(webView, imageCache, service)
     //TODO BIND lifecycle
     eventBus.observe(LoadArticleRequestEvent::class.java)
       .compose(bindToLifecycle<LoadArticleRequestEvent>())
