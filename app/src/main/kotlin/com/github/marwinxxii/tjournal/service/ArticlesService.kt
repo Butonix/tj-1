@@ -40,38 +40,37 @@ class ArticlesService(
       }
   }
 
-  fun getArticle(preview: ArticlePreview): Observable<Article> {
-    return dao.getArticle(preview.id)
-      .switchIfEmpty(
-        dao.enqueue(preview)
-          .flatMap { saved ->
-            downloadArticle(preview.url)
-              //TODO change text saving
-              .doOnNext { text -> dao.saveText(saved._id, text) }
-              //TODO handle error
-              .map { Article(saved, it) }
-              .zipWith(
-                Observable.fromCallable {
-                  if (saved.cover != null) {
-                    imageDiskStorage.copyToPermanent(saved.cover.thumbnailUrl)
-                  }
-                }, //TODO handle error?
-
-                { article, coverCopied -> article }
-              )
+  fun downloadArticle(preview: ArticlePreview): Observable<Article> {
+    return dao.savePreview(preview)
+      .flatMap { saved ->
+        downloader
+          .downloadArticle(saved.url)
+          .retry(2)
+          .map {
+            val parser = ArticleHtmlParser(it)
+            parser.replaceVideosWithThumbnails()
           }
-      )
-  }
-
-  private fun downloadArticle(url: String): Observable<String> {
-    return downloader.downloadArticle(url).map {
-      val parser = ArticleHtmlParser(it)
-      parser.replaceVideosWithThumbnails()
-      for (image in parser.findImageUrls()) {
-        imageLoader.downloadImage(image, true)//TODO check image load result?
+          .flatMap { parser ->
+            Observable.zip(
+              Observable.fromCallable {
+                val text = parser.getHtml()
+                dao.saveText(saved.id, text)
+                if (saved.cover != null) {
+                  imageDiskStorage.copyToPermanent(saved.cover.thumbnailUrl)
+                }
+                Article(saved, text)
+              },
+              Observable.from(parser.findImageUrls())
+                .flatMap {
+                  Observable.fromCallable {
+                    imageLoader.downloadImage(it, true)
+                    true
+                  }.retry(2)
+                }.lastOrDefault(true),
+              { article, imagesLoadedTrue -> article }
+            )
+          }
       }
-      parser.getHtml()
-    }
   }
 
   fun getArticle(id: Int): Article? {

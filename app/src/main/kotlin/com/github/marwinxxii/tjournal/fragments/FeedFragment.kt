@@ -9,8 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import com.github.marwinxxii.tjournal.R
 import com.github.marwinxxii.tjournal.activities.MainActivity
+import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
 import com.github.marwinxxii.tjournal.service.ArticlesService
+import com.github.marwinxxii.tjournal.utils.logError
 import com.github.marwinxxii.tjournal.widgets.ArticlesAdapter
 import com.github.marwinxxii.tjournal.widgets.ReadButtonController
 import com.github.marwinxxii.tjournal.widgets.TempImagePresenter
@@ -62,7 +64,16 @@ class FeedFragment : BaseFragment() {
 
       override fun onSwiped(vh: RecyclerView.ViewHolder, direction: Int) {
         val position = vh.adapterPosition
-        service.getArticle(adapter.items[position]).subscribe()//TODO handler errors
+        service.downloadArticle(adapter.items[position])
+          .observeOn(AndroidSchedulers.mainThread())
+          .cache()
+          .compose(bindToLifecycle<Article>())
+          .subscribeWith {
+            onError {
+              logError(it)
+              activity.toast("Could not load article")
+            }
+          }
         adapter.items.removeAt(position)
         adapter.notifyItemRemoved(position)
       }

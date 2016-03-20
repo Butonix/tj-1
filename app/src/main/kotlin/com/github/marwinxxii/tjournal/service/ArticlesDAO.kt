@@ -42,7 +42,7 @@ class ArticlesDAO(private val db: DBService) {
       }
   }
 
-  fun enqueue(preview: ArticlePreview): Observable<ArticlePreview> {
+  fun savePreview(preview: ArticlePreview): Observable<ArticlePreview> {
     return Observable.fromCallable {
       val _id = db.getWritable().insert("article",
         "status" to WAITING,
@@ -60,10 +60,10 @@ class ArticlesDAO(private val db: DBService) {
     }.doOnNext { notifyDataChanged() }
   }
 
-  fun saveText(_id: Long, text: String) {
+  fun saveText(id: Int, text: String) {
     db.getWritable()
       .update("article", "status" to READY, "text" to text)
-      .where("_id=" + _id)
+      .where("id=" + id)
       .exec()
     //TODO check exec result
     notifyDataChanged()
