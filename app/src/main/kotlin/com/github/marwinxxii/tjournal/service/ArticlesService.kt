@@ -127,6 +127,8 @@ class ArticleHtmlParser(document: Document) {
 
   fun createIframeReplacement(src: String): Element {
     val videoId = Uri.parse(src).encodedPath.replaceFirst("/embed/", "")
+    val div = Element(Tag.valueOf("div"), article.baseUri())
+    div.attr("data-tjr-thumbnail", true)//in case of future need to find these thumbnails
     val link = Element(Tag.valueOf("a"), article.baseUri())
     link.attr("href", "https://www.youtube.com/watch?v=$videoId")//TODO styles
 
@@ -134,7 +136,9 @@ class ArticleHtmlParser(document: Document) {
     img.attr("src", "https://img.youtube.com/vi/$videoId/0.jpg")//TODO choose image size
 
     link.appendChild(img)
-    return link
+    div.appendChild(link)
+    div.appendElement("span").text("(кликните, чтобы открыть YouTube видео)")
+    return div
   }
 
   fun getHtml(): String {

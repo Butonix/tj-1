@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.view.View
@@ -18,6 +19,12 @@ import com.github.marwinxxii.tjournal.AppComponent
 fun <T : Context> T.getApp(): App = this.applicationContext as App
 
 fun <T : Context> T.getAppComponent(): AppComponent = getApp().component
+
+fun <T : Context> T.isActivityResolved(intent: Intent): Boolean {
+  return !this.packageManager
+    .queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+    .isEmpty()
+}
 
 fun <T> Activity.startActivityWithClass(cl: Class<T>) {
   startActivity(Intent(this, cl))

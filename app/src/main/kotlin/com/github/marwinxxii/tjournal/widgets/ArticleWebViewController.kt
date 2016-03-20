@@ -9,6 +9,7 @@ import android.webkit.WebViewClient
 import com.github.marwinxxii.tjournal.CompositeDiskStorage
 import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.extensions.generator
+import com.github.marwinxxii.tjournal.extensions.isActivityResolved
 import com.github.marwinxxii.tjournal.service.ArticlesService
 import java.io.FileInputStream
 import java.io.InputStream
@@ -31,10 +32,11 @@ class ArticleWebViewController {
 class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: ArticlesService) : WebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
     val uri = Uri.parse(url)
-    if (uri.authority == "youtube.com" || uri.authority == "m.youtube.com" || uri.authority == "www.youtube.com") {
-      val intent = Intent(Intent.ACTION_VIEW, uri)
-      intent.setPackage("com.google.android.youtube")
-      view.context.startActivity(intent)
+    val intent = Intent(Intent.ACTION_VIEW, uri)
+    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    val context = view.context
+    if (context.isActivityResolved(intent)) {
+      context.startActivity(intent)
       return true
     }
     return false
