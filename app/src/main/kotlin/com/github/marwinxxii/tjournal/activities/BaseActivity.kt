@@ -1,12 +1,12 @@
 package com.github.marwinxxii.tjournal.activities
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import com.trello.rxlifecycle.components.support.RxAppCompatActivity
 
 /**
  * Created by alexey on 08.03.16.
  */
-abstract class BaseActivity : AppCompatActivity() {
+abstract class BaseActivity : RxAppCompatActivity() {
   abstract fun initComponent()
 
   override fun onCreate(savedInstanceState: Bundle?) {

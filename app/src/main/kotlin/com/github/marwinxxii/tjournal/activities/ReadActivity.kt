@@ -46,6 +46,7 @@ class ReadActivity : BaseActivity() {
     cache.getReadyArticlesIds()
       .subscribeOn(Schedulers.computation())
       .observeOn(AndroidSchedulers.mainThread())
+      .compose(bindToLifecycle<List<Pair<Int, String>>>())
       .subscribe {
         articleIds.addAll(it.map { it.first } )//TODO optimize
         articleMenu.populateWith(it)
