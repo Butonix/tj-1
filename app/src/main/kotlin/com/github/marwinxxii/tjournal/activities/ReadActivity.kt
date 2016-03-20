@@ -27,6 +27,7 @@ class ReadActivity : BaseActivity() {
   @Inject lateinit var eventBus: EventBus
   val articleIds: MutableList<Int> = mutableListOf()
   lateinit var articleMenu: ArticlesMenu
+  var currentArticleId = 0
 
   override fun initComponent() {
     component = getAppComponent().readActivity(ActivityModule(this))
@@ -41,6 +42,7 @@ class ReadActivity : BaseActivity() {
       loadArticle(it.itemId)
     }
     component.inject(this)
+    //TODO check for empty list?
     cache.getReadyArticlesIds()
       .subscribeOn(Schedulers.computation())
       .observeOn(AndroidSchedulers.mainThread())
@@ -59,11 +61,11 @@ class ReadActivity : BaseActivity() {
   override fun onOptionsItemSelected(item: MenuItem?): Boolean {
     when (item?.itemId) {
       R.id.read -> {
-        val id = articleIds[0]
+        val id = currentArticleId
         cache.markArticleRead(id)
           .subscribeOn(Schedulers.computation())
           .subscribe()
-        articleIds.removeAt(0)
+        articleIds.remove(id)
         articleMenu.removeItem(id)
         if (articleIds.size > 0) {
           loadNextArticle()
@@ -84,6 +86,7 @@ class ReadActivity : BaseActivity() {
   }
 
   private fun loadArticle(id: Int) {
+    currentArticleId = id
     eventBus.post(LoadArticleRequestEvent(id))
   }
 }
