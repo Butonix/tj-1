@@ -7,6 +7,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.github.marwinxxii.tjournal.CompositeDiskStorage
+import com.github.marwinxxii.tjournal.EventBus
 import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.extensions.generator
 import com.github.marwinxxii.tjournal.extensions.isActivityResolved
@@ -19,9 +20,11 @@ class ArticleWebViewController {
   val view: WebView
 
   @Inject
-  constructor(view: WebView, imageCache: CompositeDiskStorage, service: ArticlesService) {
+  constructor(view: WebView, imageCache: CompositeDiskStorage, service: ArticlesService,
+    eventBus: EventBus)
+  {
     this.view = view
-    this.view.setWebViewClient(ImageInterceptor(imageCache, service))
+    this.view.setWebViewClient(ImageInterceptor(imageCache, service, eventBus))
   }
 
   fun loadArticle(id: Int) {
@@ -29,7 +32,9 @@ class ArticleWebViewController {
   }
 }
 
-class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: ArticlesService) : WebViewClient() {
+class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: ArticlesService,
+  val eventBus: EventBus): WebViewClient()
+{
   override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
     val uri = Uri.parse(url)
     val intent = Intent(Intent.ACTION_VIEW, uri)
@@ -71,7 +76,11 @@ class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: Articl
         //TODO better solution
         var article: Article? = null
         yieldReturn {
-          article = service.getArticle(url.removePrefix("tjournal:").toInt())
+          val loaded = service.getArticle(url.removePrefix("tjournal:").toInt())
+          article = loaded
+          if (loaded != null) {
+            eventBus.post(ArticleLoadedEvent(loaded))
+          }
           "<h2>" + (article?.preview?.title ?: "") + "</h2>"
         }
         yieldReturn {
@@ -119,3 +128,5 @@ class ArticleInputStream(stringsProvider: Iterable<String>) : InputStream() {
     return currentByteArray[position++].toInt()
   }
 }
+
+data class ArticleLoadedEvent(val article: Article)

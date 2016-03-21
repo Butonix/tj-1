@@ -1,18 +1,28 @@
 package com.github.marwinxxii.tjournal.activities
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.widget.DrawerLayout
 import android.view.Menu
 import android.view.MenuItem
+import android.webkit.WebView
 import com.github.marwinxxii.tjournal.EventBus
 import com.github.marwinxxii.tjournal.R
+import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.extensions.getAppComponent
+import com.github.marwinxxii.tjournal.extensions.isActivityResolved
 import com.github.marwinxxii.tjournal.fragments.ArticleFragment
-import com.github.marwinxxii.tjournal.fragments.LoadArticleRequestEvent
 import com.github.marwinxxii.tjournal.service.ArticlesDAO
+import com.github.marwinxxii.tjournal.widgets.ArticleLoadedEvent
+import com.github.marwinxxii.tjournal.widgets.ArticleWebViewController
+import dagger.Module
+import dagger.Provides
 import dagger.Subcomponent
 import kotlinx.android.synthetic.main.activity_read.*
+import org.jetbrains.anko.share
 import org.jetbrains.anko.toast
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
@@ -24,10 +34,11 @@ import javax.inject.Inject
 class ReadActivity : BaseActivity() {
   lateinit var component: ReadActivityComponent
   @Inject lateinit var cache: ArticlesDAO
+  @Inject lateinit var webViewController: ArticleWebViewController
   @Inject lateinit var eventBus: EventBus
   val articleIds: MutableList<Int> = mutableListOf()
   lateinit var articleMenu: ArticlesMenu
-  var currentArticleId = 0
+  var currentArticle: Article? = null
 
   override fun initComponent() {
     component = getAppComponent().readActivity(ActivityModule(this))
@@ -52,32 +63,87 @@ class ReadActivity : BaseActivity() {
         articleMenu.populateWith(it)
         loadNextArticle()
       }
+    eventBus.observe(ArticleLoadedEvent::class.java)
+      .compose(bindToLifecycle<ArticleLoadedEvent>())
+      .subscribe {
+        currentArticle = it.article
+        supportInvalidateOptionsMenu()
+      }
   }
 
-  override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+  override fun onCreateOptionsMenu(menu: Menu): Boolean {
     menuInflater.inflate(R.menu.read, menu)
     return true
   }
 
-  override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-    when (item?.itemId) {
-      R.id.read -> {
-        val id = currentArticleId
-        cache.markArticleRead(id)
-          .subscribeOn(Schedulers.computation())
-          .subscribe()
-        articleIds.remove(id)
-        articleMenu.removeItem(id)
-        if (articleIds.size > 0) {
-          loadNextArticle()
-        } else {
-          toast("No more articles")
-          finish()
+  override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+    val article = currentArticle
+    if (article != null) {
+      val appIntent = createTjAppIntent(article)
+      if (isActivityResolved(appIntent)) {
+        menu.findItem(R.id.menu_open_tjournal).intent = appIntent
+      } else {
+        menu.removeItem(R.id.menu_open_tjournal)
+      }
+      val webIntent = createWebIntent(article)
+      if (isActivityResolved(webIntent)) {
+        menu.findItem(R.id.menu_open_site).intent = webIntent
+      } else {
+        menu.removeItem(R.id.menu_open_site)
+      }
+    } else {
+      menu.removeItem(R.id.menu_share)
+      menu.removeItem(R.id.menu_open_tjournal)
+      menu.removeItem(R.id.menu_open_site)
+    }
+    return super.onPrepareOptionsMenu(menu)
+  }
+
+  private fun createTjAppIntent(article: Article): Intent {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.preview.url))
+    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    intent.setPackage("ru.kraynov.app.tjournal")
+    return intent
+  }
+
+  private fun createWebIntent(article: Article): Intent {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.preview.url))
+    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    return intent
+  }
+
+  override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    val article = currentArticle
+    if (article != null) {
+      when (item.itemId) {
+        R.id.menu_read -> {
+          val id = article.preview.id
+          cache.markArticleRead(id)
+            .subscribeOn(Schedulers.computation())
+            .subscribe()
+          articleIds.remove(id)
+          articleMenu.removeItem(id)
+          if (articleIds.size > 0) {
+            loadNextArticle()
+          } else {
+            toast("No more articles")
+            finish()
+            return true
+          }
+        }
+        R.id.menu_share -> {
+          share(article.preview.url)
+          return true
         }
       }
-      android.R.id.home -> finish()//TODO NavUtils.navigateUpFromSameTask
     }
-    return true
+    when (item.itemId) {
+      android.R.id.home -> {
+        finish()//TODO NavUtils.navigateUpFromSameTask
+        return true
+      }
+    }
+    return super.onOptionsItemSelected(item)
   }
 
   private fun loadNextArticle() {
@@ -87,17 +153,25 @@ class ReadActivity : BaseActivity() {
   }
 
   private fun loadArticle(id: Int) {
-    currentArticleId = id
-    eventBus.post(LoadArticleRequestEvent(id))
+    webViewController.loadArticle(id)
   }
 }
 
-@Subcomponent(modules = arrayOf(ActivityModule::class))
+@Subcomponent(modules = arrayOf(ActivityModule::class, WebViewModule::class))
 @PerActivity
 interface ReadActivityComponent : AbstractActivityComponent {
   fun inject(activity: ReadActivity)
 
   fun inject(fragment: ArticleFragment)
+}
+
+@Module
+class WebViewModule {
+  @Provides
+  @PerActivity
+  fun provideWebView(activity: Activity): WebView {
+    return activity.findViewById(R.id.webView) as WebView
+  }
 }
 
 class ArticlesMenu {
