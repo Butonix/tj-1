@@ -121,10 +121,14 @@ class ReadActivity : BaseActivity() {
           cache.markArticleRead(id)
             .subscribeOn(Schedulers.computation())
             .subscribe()
-          articleIds.remove(id)
+          var index = articleIds.indexOf(id)
+          articleIds.removeAt(index)
           articleMenu.removeItem(id)
           if (articleIds.size > 0) {
-            loadNextArticle()
+            if (index > articleIds.size) {
+              index = articleIds.size - 1
+            }
+            loadArticle(articleIds[index])//item at index is replaced with new one
           } else {
             toast("No more articles")
             finish()
