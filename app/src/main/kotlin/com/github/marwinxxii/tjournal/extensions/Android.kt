@@ -30,6 +30,10 @@ fun <T> Activity.startActivityWithClass(cl: Class<T>) {
   startActivity(Intent(this, cl))
 }
 
+fun <T: View> T.gone() {
+  this.visibility = View.GONE
+}
+
 fun <T : View> T.toggleVisibility(visible: Boolean) {
   this.visibility = if (visible) View.VISIBLE else View.GONE
 }
