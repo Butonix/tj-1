@@ -3,6 +3,7 @@ package com.github.marwinxxii.tjournal.service
 import android.database.Cursor
 import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
+import com.github.marwinxxii.tjournal.entities.ArticleStatus
 import com.github.marwinxxii.tjournal.entities.CoverPhoto
 import com.github.marwinxxii.tjournal.extensions.*
 import org.jetbrains.anko.db.*
@@ -44,8 +45,9 @@ class ArticlesDAO(private val db: DBService) {
 
   fun savePreview(preview: ArticlePreview): Observable<ArticlePreview> {
     return Observable.fromCallable {
+      val status = ArticleStatus.WAITING
       val _id = db.getWritable().insert("article",
-        "status" to WAITING,
+        "status" to statusToInt(status),
         "id" to preview.id,
         "title" to preview.title,
         "url" to preview.url,
@@ -56,13 +58,16 @@ class ArticlesDAO(private val db: DBService) {
         "coverThumbnailUrl" to preview.cover?.thumbnailUrl,
         "coverUrl" to preview.cover?.url
       )
-      preview.copy(_id = _id, status = WAITING)
+      preview.copy(_id = _id, status = status)
     }.doOnNext { notifyDataChanged() }
   }
 
   fun saveText(id: Int, text: String) {
     db.getWritable()
-      .update("article", "status" to READY, "text" to text)
+      .update("article",
+        "status" to statusToInt(ArticleStatus.READY),
+        "text" to text
+      )
       .where("id=" + id)
       .exec()
     //TODO check exec result
@@ -77,7 +82,7 @@ class ArticlesDAO(private val db: DBService) {
     return Observable.fromCallable {
       db.getReadable()
         .select("article", "id", "title")
-        .where("status=" + READY)
+        .where("status=" + statusToInt(ArticleStatus.READY))
         .orderBy("date", SqlOrderDirection.DESC)
         .parseList(rowParser { id: Long, title:String -> Pair(id.toInt(), title) })
     }
@@ -88,7 +93,7 @@ class ArticlesDAO(private val db: DBService) {
     return Observable.fromCallable {
       db.getReadable()
         .select("article", "id")
-        .where("status>=" + READY + " AND id in (" + ids.joinToString(",") + ")")
+        .where("status>=" + statusToInt(ArticleStatus.READY) + " AND id in (" + ids.joinToString(",") + ")")
         .parseList(IntParser)
     }
   }
@@ -97,11 +102,11 @@ class ArticlesDAO(private val db: DBService) {
     return changesSubject
   }
 
-  fun countArticlesByStatus(status: Int): Observable<Int> {
+  fun countArticlesByStatus(status: ArticleStatus): Observable<Int> {
     return Observable.fromCallable {
       db.getReadable()
         .select("article", "count(*)")
-        .where("status=" + status)
+        .where("status=" + statusToInt(status))
         .parseSingle(IntParser)
     }
   }
@@ -110,14 +115,14 @@ class ArticlesDAO(private val db: DBService) {
     return Observable.fromCallable {
       db.getReadable()
         .select("article", "count(*)")
-        .where("status!=" + READ)
+        .where("status!=" + statusToInt(ArticleStatus.READ))
         .parseSingle(IntParser)
     }
   }
 
   fun markArticleRead(id: Int): Observable<Any> {
     return Observable.fromCallable {
-      db.getWritable().update("article", "status" to READ).where("id=" + id).exec()
+      db.getWritable().update("article", "status" to statusToInt(ArticleStatus.READ)).where("id=" + id).exec()
       notifyDataChanged()
     }
   }
@@ -141,7 +146,7 @@ class ArticlesDAO(private val db: DBService) {
     return Observable.fromCallable {
       db.getReadable()
         .select("article", "*")
-        .where("status=" + READ)
+        .where("status=" + statusToInt(ArticleStatus.READ))
         .exec {
           val result = mutableListOf<ArticlePreview>()
           while (this.moveToNext()) {
@@ -155,9 +160,10 @@ class ArticlesDAO(private val db: DBService) {
   private fun readPreview(c: Cursor): ArticlePreview {
     val thumbnail = c.getString("coverThumbnailUrl")
     val fullCover = c.getString("coverUrl")
+    val status = c.getInt("status")
     return ArticlePreview(
       c.getLong("_id"),
-      c.getInt("status"),
+      ArticleStatus.values().first { it.ordinal == status },
       c.getInt("id"),
       c.getString("title")!!,
       c.getString("url")!!,
@@ -167,5 +173,9 @@ class ArticlesDAO(private val db: DBService) {
       c.getInt("likes"),
       if (thumbnail != null && fullCover != null) CoverPhoto(thumbnail, fullCover) else null
     )
+  }
+
+  fun statusToInt(status: ArticleStatus): Int {
+    return status.ordinal//TODO
   }
 }

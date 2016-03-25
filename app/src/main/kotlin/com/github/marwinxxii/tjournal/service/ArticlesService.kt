@@ -5,6 +5,7 @@ import com.github.marwinxxii.tjournal.CompositeDiskStorage
 import com.github.marwinxxii.tjournal.ImageLoaderImpl
 import com.github.marwinxxii.tjournal.entities.Article
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
+import com.github.marwinxxii.tjournal.entities.ArticleStatus
 import com.github.marwinxxii.tjournal.network.TJournalAPI
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -82,7 +83,7 @@ class ArticlesService(
       .flatMap {
         Observable.zip(
           dao.countUnreadArticles(),
-          dao.countArticlesByStatus(READY),
+          dao.countArticlesByStatus(ArticleStatus.READY),
           { total, ready -> ArticleCount(total, ready) }
         )
       }
@@ -90,17 +91,11 @@ class ArticlesService(
 
   fun getSavedPreviews(): Observable<List<ArticlePreview>> {
     return dao.observeArticleChanges().startWith("")
-      .flatMap { dao.getPreviews("status=" + READY) }
+      .flatMap { dao.getPreviews("status=" + dao.statusToInt(ArticleStatus.READY)) }
   }
 }
 
 data class ArticleCount(val total: Int, val loaded: Int)
-
-const val WAITING = 0
-const val LOADING: Int = 1
-const val ERROR: Int = 2
-const val READY: Int = 3
-const val READ: Int = 4
 
 class ArticleHtmlParser(document: Document) {
   private val article = getArticle(document)
