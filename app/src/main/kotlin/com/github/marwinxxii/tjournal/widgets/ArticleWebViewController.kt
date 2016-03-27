@@ -9,9 +9,10 @@ import android.webkit.WebViewClient
 import com.github.marwinxxii.tjournal.CompositeDiskStorage
 import com.github.marwinxxii.tjournal.EventBus
 import com.github.marwinxxii.tjournal.entities.Article
-import com.github.marwinxxii.tjournal.extensions.generator
+import com.github.marwinxxii.tjournal.entities.ArticleExternalSource
 import com.github.marwinxxii.tjournal.extensions.isActivityResolved
 import com.github.marwinxxii.tjournal.service.ArticlesService
+import rx.Observable
 import java.io.FileInputStream
 import java.io.InputStream
 import javax.inject.Inject
@@ -71,23 +72,24 @@ class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: Articl
 
   private fun loadArticle(url: String): WebResourceResponse {
     return WebResourceResponse("text/html", "utf-8", ArticleInputStream(
-      generator {
-        yieldReturn(articleHead)
-        //TODO better solution
-        var article: Article? = null
-        yieldReturn {
-          val loaded = service.getArticle(url.removePrefix("tjournal:").toInt())
-          article = loaded
-          if (loaded != null) {
-            eventBus.post(ArticleLoadedEvent(loaded))
+      Observable.concat(
+        Observable.just(articleHead),
+        service.getArticle(url.removePrefix("tjournal:").toInt())
+          .flatMap {
+            eventBus.post(ArticleLoadedEvent(it))
+            val title = "<h2>" + it.preview.title + "</h2>\n"
+            if (it.preview.externalLink != null) {
+              Observable.just(
+                title, createExternalSourceElement(it.preview.externalLink), it.text
+              )
+            } else {
+              Observable.just(title, it.text)
+            }
           }
-          "<h2>" + (article?.preview?.title ?: "") + "</h2>"
-        }
-        yieldReturn {
-          article?.text ?: "Article could not be loaded, try again"
-        }
-        yieldReturn("</body></html>")
-      }
+          .onErrorResumeNext(Observable.just(onErrorMessage))
+          .defaultIfEmpty(onErrorMessage),
+        Observable.just("</body></html>")
+      ).toBlocking().toIterable()
     ))
   }
 
@@ -98,8 +100,13 @@ class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: Articl
     }
     return null
   }
+
+  private fun createExternalSourceElement(source: ArticleExternalSource): String {
+    return "<p>Source: <a href=\"${source.url}\">${source.domain}</a></p>"
+  }
 }
 
+const val onErrorMessage = "Article could not be loaded, try again"
 const val articleHead = "<!doctype html>" +
   "<html>" +
   "<head>" +

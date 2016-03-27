@@ -37,6 +37,8 @@ class DBService(app: App) {
         "likes" to INTEGER,
         "coverThumbnailUrl" to TEXT,
         "coverUrl" to TEXT,
+        "externalDomain" to TEXT,
+        "externalUrl" to TEXT,
         "text" to TEXT
       )
     }

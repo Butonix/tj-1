@@ -1,7 +1,9 @@
 package com.github.marwinxxii.tjournal.network
 
 import com.github.marwinxxii.tjournal.entities.ArticlePreview
+import com.github.marwinxxii.tjournal.entities.ArticleExternalSource
 import com.github.marwinxxii.tjournal.entities.CoverPhoto
+import com.github.marwinxxii.tjournal.extensions.getAsNullableJsonObject
 import com.google.gson.*
 import com.squareup.okhttp.OkHttpClient
 import dagger.Module
@@ -66,15 +68,24 @@ class ArticlePreviewDeserializer : JsonDeserializer<ArticlePreview> {
     val likes = json.getAsJsonObject("likes").getAsJsonPrimitive("summ").asInt
 
     var cover: CoverPhoto? = null
-    val coverJson = json.get("cover")
-    if (coverJson != null && !coverJson.isJsonNull) {
-      val thumbnail = coverJson.asJsonObject?.get("thumbnailUrl")?.asString
-      val full = coverJson.asJsonObject?.get("url")?.asString
+    val coverJson = json.getAsNullableJsonObject("cover")
+    if (coverJson != null) {
+      val thumbnail = coverJson.get("thumbnailUrl")?.asString
+      val full = coverJson.get("url")?.asString
       if (thumbnail != null && full != null) {
         cover = CoverPhoto(thumbnail, full)
       }
     }
+    var external: ArticleExternalSource? = null
+    val externalJson = json.getAsNullableJsonObject("externalLink")
+    if (externalJson != null) {
+      val externalDomain = externalJson.get("domain")?.asString
+      val externalUrl = externalJson.get("url")?.asString
+      if (externalDomain != null && externalUrl != null) {
+        external = ArticleExternalSource(externalDomain, externalUrl)
+      }
+    }
     //TODO fix
-    return ArticlePreview(id, title, url, intro, date, commentsCount, likes, cover)
+    return ArticlePreview(id, title, url, intro, date, commentsCount, likes, cover, external)
   }
 }

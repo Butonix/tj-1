@@ -74,8 +74,8 @@ class ArticlesService(
       }
   }
 
-  fun getArticle(id: Int): Article? {
-    return dao.getArticleSync(id)
+  fun getArticle(id: Int): Observable<Article> {
+    return dao.getArticle(id)
   }
 
   fun observeArticleCount(): Observable<ArticleCount> {

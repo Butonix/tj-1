@@ -14,7 +14,8 @@ data class ArticlePreview(
   val date: Date,
   val commentsCount: Int,
   val likes: Int,
-  val cover: CoverPhoto?
+  val cover: CoverPhoto?,
+  val externalLink: ArticleExternalSource?
 ) {
   constructor(id: Int,
     title: String,
@@ -23,8 +24,9 @@ data class ArticlePreview(
     date: Date,
     commentsCount: Int,
     likes: Int,
-    cover: CoverPhoto?) :
-  this(0, ArticleStatus.WAITING, id, title, url, intro, date, commentsCount, likes, cover) {
+    cover: CoverPhoto?,
+    source: ArticleExternalSource?) :
+  this(0, ArticleStatus.WAITING, id, title, url, intro, date, commentsCount, likes, cover, source) {
   }
 }
 
@@ -39,3 +41,5 @@ enum class ArticleStatus {
   READY,
   READ
 }
+
+data class ArticleExternalSource(val domain: String, val url: String)

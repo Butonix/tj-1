@@ -1,10 +1,7 @@
 package com.github.marwinxxii.tjournal.service
 
 import android.database.Cursor
-import com.github.marwinxxii.tjournal.entities.Article
-import com.github.marwinxxii.tjournal.entities.ArticlePreview
-import com.github.marwinxxii.tjournal.entities.ArticleStatus
-import com.github.marwinxxii.tjournal.entities.CoverPhoto
+import com.github.marwinxxii.tjournal.entities.*
 import com.github.marwinxxii.tjournal.extensions.*
 import org.jetbrains.anko.db.*
 import rx.Observable
@@ -56,7 +53,9 @@ class ArticlesDAO(private val db: DBService) {
         "commentsCount" to preview.commentsCount,
         "likes" to preview.likes,
         "coverThumbnailUrl" to preview.cover?.thumbnailUrl,
-        "coverUrl" to preview.cover?.url
+        "coverUrl" to preview.cover?.url,
+        "externalDomain" to preview.externalLink?.domain,
+        "externalUrl" to preview.externalLink?.url
       )
       preview.copy(_id = _id, status = status)
     }.doOnNext { notifyDataChanged() }
@@ -161,6 +160,8 @@ class ArticlesDAO(private val db: DBService) {
     val thumbnail = c.getString("coverThumbnailUrl")
     val fullCover = c.getString("coverUrl")
     val status = c.getInt("status")
+    val externalDomain = c.getString("externalDomain")
+    val externalUrl = c.getString("externalUrl")
     return ArticlePreview(
       c.getLong("_id"),
       ArticleStatus.values().first { it.ordinal == status },
@@ -171,7 +172,8 @@ class ArticlesDAO(private val db: DBService) {
       Date(c.getLong("date")),
       c.getInt("commentsCount"),
       c.getInt("likes"),
-      if (thumbnail != null && fullCover != null) CoverPhoto(thumbnail, fullCover) else null
+      if (thumbnail != null && fullCover != null) CoverPhoto(thumbnail, fullCover) else null,
+      if (externalUrl != null && externalDomain != null) ArticleExternalSource(externalDomain, externalUrl) else null
     )
   }
 
