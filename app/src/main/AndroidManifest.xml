@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.github.marwinxxii.tjournal">
+          package="com.a6v.tjreader">
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
