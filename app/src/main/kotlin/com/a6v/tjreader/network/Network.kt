@@ -16,6 +16,7 @@ import retrofit.http.Query
 import rx.Observable
 import java.lang.reflect.Type
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 /**
@@ -44,7 +45,10 @@ class NetworkModule {
   @Provides
   @Singleton
   fun provideOkHttpClient(): OkHttpClient {
-    return OkHttpClient()
+    val client = OkHttpClient()
+    client.setReadTimeout(5, TimeUnit.SECONDS)
+    client.setConnectTimeout(5, TimeUnit.SECONDS)
+    return client
   }
 
   @Provides

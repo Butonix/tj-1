@@ -11,6 +11,7 @@ import com.nostra13.universalimageloader.core.DefaultConfigurationFactory
 import com.nostra13.universalimageloader.core.DisplayImageOptions
 import com.nostra13.universalimageloader.core.ImageLoader
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration
+import com.nostra13.universalimageloader.core.download.BaseImageDownloader
 import com.nostra13.universalimageloader.core.download.ImageDownloader
 import com.nostra13.universalimageloader.utils.IoUtils
 import dagger.Module
@@ -30,6 +31,7 @@ class ImageLoaderImpl {
         .diskCache(diskCache)
         .imageDownloader(ImageDownloaderImpl(DefaultConfigurationFactory.createImageDownloader(context)))
         .defaultDisplayImageOptions(getDefaultImageOptions().build())
+        .imageDownloader(BaseImageDownloader(context, 5000, 5000))
         .writeDebugLogs()
         .build()
     )
