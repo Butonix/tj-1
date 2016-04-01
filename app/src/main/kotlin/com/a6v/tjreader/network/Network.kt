@@ -23,7 +23,7 @@ import javax.inject.Singleton
  */
 
 interface TJournalAPI {
-  @GET("/club?type=0&sortMode=mainpage")
+  @GET("/club?type=0&sortMode=recent&count=50")
   fun getNews(@Query("offset") offset: Int): Observable<List<ArticlePreview>>;
 }
 
