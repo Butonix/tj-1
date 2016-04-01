@@ -6,6 +6,7 @@ import com.a6v.tjreader.ImageLoaderImpl
 import com.a6v.tjreader.entities.Article
 import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.entities.ArticleStatus
+import com.a6v.tjreader.network.HtmlDownloader
 import com.a6v.tjreader.network.TJournalAPI
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -20,7 +21,7 @@ import rx.Observable
 class ArticlesService(
   private val api: TJournalAPI,
   private val dao: ArticlesDAO,
-  private val downloader: ArticleDownloadService,
+  private val downloader: HtmlDownloader,
   private val imageDiskStorage: CompositeDiskStorage,
   private val imageLoader: ImageLoaderImpl) {
 

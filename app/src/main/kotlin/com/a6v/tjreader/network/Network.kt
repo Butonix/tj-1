@@ -53,6 +53,12 @@ class NetworkModule {
       .registerTypeAdapter(ArticlePreview::class.java, ArticlePreviewDeserializer())
       .create()
   }
+
+  @Provides
+  @Singleton
+  fun provideDownloader(httpClient: OkHttpClient): HtmlDownloader {
+    return HtmlDownloader(httpClient)
+  }
 }
 
 class ArticlePreviewDeserializer : JsonDeserializer<ArticlePreview> {

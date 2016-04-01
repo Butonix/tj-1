@@ -1,4 +1,4 @@
-package com.a6v.tjreader.service
+package com.a6v.tjreader.network
 
 import com.a6v.tjreader.extensions.filterNonNull
 import com.squareup.okhttp.Callback
@@ -14,7 +14,7 @@ import java.io.IOException
 /**
  * Created by alexey on 21.02.16.
  */
-class ArticleDownloadService(private val httpClient: OkHttpClient) {
+class HtmlDownloader(private val httpClient: OkHttpClient) {
   fun downloadArticle(url: String): Observable<Document> {
     return observeNetworkRequest(url)
       //TODO observe on computation?
