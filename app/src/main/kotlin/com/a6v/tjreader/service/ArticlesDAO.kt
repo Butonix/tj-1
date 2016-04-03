@@ -6,6 +6,7 @@ import com.a6v.tjreader.db.DaoInit
 import com.a6v.tjreader.entities.*
 import com.a6v.tjreader.extensions.*
 import org.jetbrains.anko.db.*
+import rx.Completable
 import rx.Observable
 import rx.Single
 import rx.schedulers.Schedulers
@@ -51,16 +52,31 @@ class ArticlesDAO(private val db: DBService) {
     }
   }
 
-  fun saveText(id: Int, text: String) {
-    db.getWritable()
-      .update("article",
-        "status" to statusToInt(ArticleStatus.READY),
-        "text" to text
-      )
-      .where("id=" + id)
-      .exec()
-    //TODO check exec result
-    notifyDataChanged()
+  fun updateArticle(preview: ArticlePreview, text: String): Single<Article> {
+    return Single.fromCallable {
+      db.getWritable()
+        .update(TABLE_NAME,
+          "text" to text
+        )
+        .where("id=" + preview.id)
+        .exec()
+      //TODO check exec result
+      notifyDataChanged()
+      Article(preview, text)
+    }
+  }
+
+  fun updateArticle(id: Int, status: ArticleStatus): Completable {
+    return Completable.fromAction {
+      db.getWritable()
+        .update(TABLE_NAME,
+          "status" to statusToInt(status)
+        )
+        .where("id=" + id)
+        .exec()
+      //TODO check exec result
+      notifyDataChanged()
+    }
   }
 
   private fun notifyDataChanged() {
@@ -147,7 +163,22 @@ class ArticlesDAO(private val db: DBService) {
   }
 
   fun queryArticles(status: ArticleStatus): Observable<ArticlePreview> {
-    return Observable.empty()
+    return Observable.create { subscriber ->
+      db.getReadable().select(TABLE_NAME, "*")
+        .where("status=" + statusToInt(status))
+        .exec {
+          while (this.moveToNext()) {
+            if (!subscriber.isUnsubscribed) {
+              subscriber.onNext(readPreview(this))
+            } else {
+              break
+            }
+          }
+          if (!subscriber.isUnsubscribed) {
+            subscriber.onCompleted()
+          }
+        }
+    }
   }
 
   private fun readPreview(c: Cursor): ArticlePreview {

@@ -6,6 +6,7 @@ import com.a6v.tjreader.service.DBService
 import com.a6v.tjreader.extensions.where
 import org.jetbrains.anko.db.*
 import rx.Completable
+import rx.Observable
 import rx.Single
 
 class ImagesDao(private val db: DBService) {
@@ -36,12 +37,31 @@ class ImagesDao(private val db: DBService) {
     }
   }
 
-  fun queryImages(articleId: Int, state: ImageState): Single<List<String>> {
-    return Single.fromCallable {
+  fun queryImages(articleId: Int, state: ImageState): Observable<String> {
+    return queryImages(ARTICLE_ID to articleId, STATE to state2Int(state))
+  }
+
+  fun queryImages(state: ImageState): Observable<String> {
+    return queryImages(STATE to state2Int(state))
+  }
+
+  private fun queryImages(vararg where: Pair<String, Any>): Observable<String> {
+    return Observable.create { subscriber ->
       db.getReadable()
         .select(TABLE_NAME, URL)
-        .where(ARTICLE_ID to articleId, STATE to state2Int(state))
-        .parseList(StringParser)
+        .where(*where)
+        .exec {
+          while (this.moveToNext()) {
+            if (!subscriber.isUnsubscribed) {
+              subscriber.onNext(this.getString(0))
+            } else {
+              break
+            }
+          }
+          if (!subscriber.isUnsubscribed) {
+            subscriber.onCompleted()
+          }
+        }
     }
   }
 

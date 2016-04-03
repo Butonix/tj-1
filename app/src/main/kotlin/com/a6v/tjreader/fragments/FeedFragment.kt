@@ -82,7 +82,7 @@ class FeedFragment : BaseFragment() {
       }
     }).attachToRecyclerView(article_list)
 
-    articleDownloader.downloadPendingArticles()
+    articleDownloader.downloadPendingArticles().subscribe()//FIXME handle errors
   }
 
   private fun setTitle(count: Int) {

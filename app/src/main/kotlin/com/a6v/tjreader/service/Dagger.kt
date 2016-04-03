@@ -17,22 +17,27 @@ import javax.inject.Singleton
 class ArticlesModule {
   @Provides
   @Singleton
-  fun provideService(api: TJournalAPI, cache: ArticlesDAO,
-    downloader: HtmlDownloader,
-    imageDiskStorage: CompositeDiskStorage,
-    imageLoader: ImageLoaderImpl): ArticlesService {
-    return ArticlesService(api, cache, downloader, imageDiskStorage, imageLoader)
+  fun provideService(api: TJournalAPI, articleDao: ArticlesDAO): ArticlesService {
+    return ArticlesService(api, articleDao)
   }
 
   @Provides
   @Singleton
   fun provideArticleDownloader(
     articlesDAO: ArticlesDAO,
-    imagesDao: ImagesDao,
     htmlDownloader: HtmlDownloader,
+    imageDownloader: ImageDownloader
+  ): ArticleDownloader {
+    return ArticleDownloader(articlesDAO,  htmlDownloader, imageDownloader)
+  }
+
+  @Provides
+  @Singleton
+  fun provideImageDownloader(
+    imagesDao: ImagesDao,
     imageLoader: ImageLoaderImpl,
     imageDiskStorage: CompositeDiskStorage
-  ): ArticleDownloader {
-    return ArticleDownloader(articlesDAO, imagesDao, htmlDownloader, imageLoader, imageDiskStorage)
+  ): ImageDownloader {
+    return ImageDownloader(imagesDao, imageLoader, imageDiskStorage)
   }
 }
