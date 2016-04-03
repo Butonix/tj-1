@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import android.text.TextUtils
 import android.view.View
 import android.widget.TextView
 import com.a6v.tjreader.App
@@ -47,6 +48,10 @@ fun <T : TextView> T.toggleVisibilityAndText(visible: Boolean, text: CharSequenc
 
 fun <T : TextView> T.toggleVisibilityAndText(visible: Boolean, value: Any) {
   return toggleVisibilityAndText(visible, value.toString())
+}
+
+fun <T : TextView> T.toggleText(text: CharSequence) {
+  return toggleVisibilityAndText(!TextUtils.isEmpty(text), text)
 }
 
 fun SQLiteDatabase.insert(tableName: String, vararg values: Pair<String, Any?>): Long {

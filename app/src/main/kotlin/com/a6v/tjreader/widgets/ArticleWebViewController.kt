@@ -97,7 +97,7 @@ class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: Articl
     items.add(article.text)
 
     val likes = (if (preview.likes > 0) "+" else "-") + preview.likes
-    val footer = String.format(footer, likes, preview.commentsCount)
+    val footer = String.format(footer, preview.commentsCount, likes)
     items.add(footer)
 
     if (!preview.hasFullText && preview.cover != null) {
@@ -132,8 +132,8 @@ const val articleHead = "<!doctype html>" +
   "</head>" +
   "<body>"
 const val footer = "<footer><table border=0 width=\"100%%\"><tr>" +
-  "<td with=\"50%%\" style=\"text-align: left; color: #999;\">%s</td>" +
-  "<td width=\"50%%\" style=\"text-align: right; color: #999;\">%d comments</td>" +
+  "<td with=\"50%%\" style=\"text-align: left; color: #999;\">%d comments</td>" +
+  "<td width=\"50%%\" style=\"text-align: right; color: #999;\">%s</td>" +
   "</tr></footer>"
 
 class ArticleInputStream(stringsProvider: Iterable<String>) : InputStream() {
