@@ -14,9 +14,6 @@ import rx.Observable
 import rx.subjects.PublishSubject
 import javax.inject.Singleton
 
-/**
- * Created by alexey on 20.02.16.
- */
 class App : Application() {
   lateinit var component: AppComponent
 

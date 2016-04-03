@@ -14,10 +14,6 @@ import com.a6v.tjreader.AppComponent
 import org.jetbrains.anko.db.SelectQueryBuilder
 import org.jetbrains.anko.db.UpdateQueryBuilder
 
-/**
- * Created by alexey on 20.02.16.
- */
-
 fun <T : Context> T.getApp(): App = this.applicationContext as App
 
 fun <T : Context> T.getAppComponent(): AppComponent = getApp().component

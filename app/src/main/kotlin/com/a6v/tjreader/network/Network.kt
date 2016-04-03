@@ -21,13 +21,9 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
-/**
- * Created by alexey on 20.02.16.
- */
-
 interface TJournalAPI {
   @GET("/club?type=0&sortMode=recent&count=50")
-  fun getNews(@Query("offset") offset: Int): Observable<List<ArticlePreview>>;
+  fun getNews(@Query("offset") offset: Int): Observable<List<ArticlePreview>>
 }
 
 @Module

@@ -10,10 +10,6 @@ import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
 
-/**
- * Created by alexey on 22.02.16.
- */
-
 @Module
 class ArticlesModule {
   @Provides

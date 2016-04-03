@@ -10,9 +10,6 @@ import rx.Single
 import rx.SingleSubscriber
 import java.io.IOException
 
-/**
- * Created by alexey on 21.02.16.
- */
 class HtmlDownloader(private val httpClient: OkHttpClient) {
   fun download(url: String): Single<Document> {
     return performNetworkRequest(url)

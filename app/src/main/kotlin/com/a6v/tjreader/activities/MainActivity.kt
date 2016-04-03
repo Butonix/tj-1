@@ -13,9 +13,6 @@ import com.a6v.tjreader.fragments.SavedFragment
 import dagger.Subcomponent
 import kotlinx.android.synthetic.main.activity_main.*
 
-/**
- * Created by alexey on 20.02.16.
- */
 class MainActivity : BaseActivity() {
   lateinit var component: MainActivityComponent
   lateinit var drawerToggle: ActionBarDrawerToggle

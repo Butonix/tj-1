@@ -29,9 +29,6 @@ import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import javax.inject.Inject
 
-/**
- * Created by alexey on 23.02.16.
- */
 class ReadActivity : BaseActivity() {
   lateinit var component: ReadActivityComponent
   @Inject lateinit var cache: ArticlesDAO

@@ -11,9 +11,6 @@ import kotlinx.android.synthetic.main.widget_btn_read.*
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 
-/**
- * Created by alexey on 09.03.16.
- */
 object ReadButtonController {
   fun run(service: ArticlesService, fragment: BaseFragment) {
     val read = fragment.read
