@@ -11,7 +11,10 @@ data class ArticlePreview(
   val commentsCount: Int,
   val likes: Int,
   val cover: CoverPhoto?,
-  val externalLink: ArticleExternalSource?
+  val externalLink: ArticleExternalSource?,
+  val hasFullText: Boolean,
+  //non persisted field
+  val introHtml: String? = null
 )
 
 data class Article(val preview: ArticlePreview, val text: String)

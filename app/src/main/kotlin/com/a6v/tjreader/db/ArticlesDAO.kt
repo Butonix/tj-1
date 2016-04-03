@@ -4,6 +4,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
 import com.a6v.tjreader.entities.*
+import com.a6v.tjreader.extensions.getBoolean
 import com.a6v.tjreader.extensions.getInt
 import com.a6v.tjreader.extensions.getLong
 import com.a6v.tjreader.extensions.getString
@@ -46,10 +47,23 @@ class ArticlesDAO(db: DBProvider) : BaseDao(NAME, db) {
         "coverThumbnailUrl" to preview.cover?.thumbnailUrl,
         "coverUrl" to preview.cover?.url,
         "externalDomain" to preview.externalLink?.domain,
-        "externalUrl" to preview.externalLink?.url
+        "externalUrl" to preview.externalLink?.url,
+        HAS_FULL_TEXT to preview.hasFullText
       )
       notifyDataChanged()
       preview
+    }
+  }
+
+  fun saveArticle(article: Article, status: ArticleStatus): Completable {
+    return Completable.fromAction {
+      db.getWritable().transaction {
+        //TODO perform this in a single action
+        Completable.concat(
+          Completable.fromSingle(savePreview(article.preview, status)),
+          Completable.fromSingle(updateArticle(article.preview, article.text))
+        ).await()
+      }
     }
   }
 
@@ -182,12 +196,14 @@ class ArticlesDAO(db: DBProvider) : BaseDao(NAME, db) {
       c.getInt("commentsCount"),
       c.getInt("likes"),
       if (thumbnail != null && fullCover != null) CoverPhoto(thumbnail, fullCover) else null,
-      if (externalUrl != null && externalDomain != null) ArticleExternalSource(externalDomain, externalUrl) else null
+      if (externalUrl != null && externalDomain != null) ArticleExternalSource(externalDomain, externalUrl) else null,
+      c.getBoolean(HAS_FULL_TEXT)
     )
   }
 
   companion object {
     const val NAME = "articles"
+    const val HAS_FULL_TEXT = "hasFullText"
 
     fun statusToInt(status: ArticleStatus): Int {
       return status.ordinal//TODO
@@ -209,7 +225,8 @@ class ArticlesDAO(db: DBProvider) : BaseDao(NAME, db) {
           "coverUrl" to TEXT,
           "externalDomain" to TEXT,
           "externalUrl" to TEXT,
-          "text" to TEXT
+          "text" to TEXT,
+          HAS_FULL_TEXT to INTEGER
         )
       }
     }

@@ -23,7 +23,8 @@ class ArticlesService(
       }
       .map {
         it.map {
-          it.copy(intro = ArticleHtmlParser.getIntroText(it.intro))
+          val intro = it.intro
+          it.copy(intro = ArticleHtmlParser.getIntroText(intro), introHtml = intro)
         }
       }
   }

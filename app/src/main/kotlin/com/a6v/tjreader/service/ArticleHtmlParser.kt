@@ -27,18 +27,14 @@ class ArticleHtmlParser(document: Document) {
 
   fun createIframeReplacement(src: String): Element {
     val videoId = Uri.parse(src).encodedPath.replaceFirst("/embed/", "")
-    val div = Element(Tag.valueOf("div"), article.baseUri())
-    div.attr("data-tjr-thumbnail", true)//in case of future need to find these thumbnails
-    val link = Element(Tag.valueOf("a"), article.baseUri())
-    link.attr("href", "https://www.youtube.com/watch?v=$videoId")//TODO styles
-
-    val img = Element(Tag.valueOf("img"), article.baseUri())
-    img.attr("src", "https://img.youtube.com/vi/$videoId/0.jpg")//TODO choose image size
-
-    link.appendChild(img)
-    div.appendChild(link)
-    div.appendElement("span").text("(кликните, чтобы открыть YouTube видео)")
-    return div
+    val videoThumbnail = createArticleImage(
+      "https://www.youtube.com/watch?v=$videoId",
+      "https://img.youtube.com/vi/$videoId/0.jpg", //TODO choose image size
+      article.baseUri()
+    )
+    videoThumbnail.attr("data-tjr-thumbnail", true)//in case of future need to find these thumbnails
+    videoThumbnail.appendElement("span").text("(кликните, чтобы открыть YouTube видео)")
+    return videoThumbnail
   }
 
   fun getHtml(): String {
@@ -52,6 +48,22 @@ class ArticleHtmlParser(document: Document) {
 
     fun getIntroText(html: String): String {
       return Jsoup.parse(html).text()
+    }
+
+    fun createArticleImage(href: String, src: String, baseUri: String): Element {
+      val div = Element(Tag.valueOf("div"), baseUri)
+      div.attr("data-tjr-image", true)//in case of future need to find these images
+
+      val link = Element(Tag.valueOf("a"), baseUri)
+      link.attr("href", href)//TODO styles
+
+      val img = Element(Tag.valueOf("img"), baseUri)
+      img.addClass("full-width")
+      img.attr("src", src)//TODO choose image size
+
+      link.appendChild(img)
+      div.appendChild(link)
+      return div
     }
   }
 }

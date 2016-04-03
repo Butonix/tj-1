@@ -106,3 +106,5 @@ fun Cursor.getLong(columnName: String): Long = getValueFromCursor(columnName, Cu
 fun Cursor.getInt(columnName: String): Int = getValueFromCursor(columnName, Cursor::getInt)
 
 fun Cursor.getString(columnName: String): String? = getValueFromCursor(columnName, Cursor::getString)
+
+fun Cursor.getBoolean(columnName: String): Boolean = getValueFromCursor(columnName, Cursor::getInt) == 1

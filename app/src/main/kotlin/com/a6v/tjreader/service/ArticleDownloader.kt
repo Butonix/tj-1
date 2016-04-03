@@ -15,20 +15,22 @@ class ArticleDownloader(
   private val imageDownloader: ImageDownloader
 ) {
   fun downloadArticle(preview: ArticlePreview): Single<Article> {
-    return articlesDAO.savePreview(preview, ArticleStatus.WAITING)
-      .flatMap { downloadAndUpdateArticle(it) }
+    if (preview.hasFullText) {
+      return articlesDAO.savePreview(preview, ArticleStatus.WAITING)
+        .flatMap { downloadAndUpdateArticle(it) }
+    } else {
+      val article = Article(preview, preview.introHtml!!)
+      return articlesDAO.saveArticle(article, ArticleStatus.LOADING)
+        .endWith(saveThumbnail(preview))
+        .endWith(articlesDAO.updateArticle(preview.id, ArticleStatus.READY))
+        .toSingleDefault(article)
+    }
   }
 
   fun downloadAndUpdateArticle(saved: ArticlePreview): Single<Article> {
     val thumbnail = saved.cover?.thumbnailUrl
-    val thumbnailSaving: Completable
-    if (thumbnail != null) {
-      thumbnailSaving = imageDownloader.saveThumbnail(saved, thumbnail)
-    } else {
-      thumbnailSaving = Completable.complete()
-    }
     return Single.zip(
-      thumbnailSaving.toSingleDefault(0),
+      saveThumbnail(saved).toSingleDefault(0),
 
       htmlDownloader
         .download(saved.url)
@@ -74,4 +76,13 @@ class ArticleDownloader(
       .lastOrDefault(false)
       .toSingle()
   }*/
+
+  fun saveThumbnail(preview: ArticlePreview): Completable {
+    val thumbnail = preview.cover?.thumbnailUrl
+    if (thumbnail != null) {
+      return imageDownloader.saveThumbnail(preview, thumbnail)
+    } else {
+      return Completable.complete()
+    }
+  }
 }

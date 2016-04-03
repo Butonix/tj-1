@@ -81,25 +81,34 @@ class ArticlePreviewDeserializer : JsonDeserializer<ArticlePreview> {
     val commentsCount = json.getAsJsonPrimitive("commentsCount").asInt
     val likes = json.getAsJsonObject("likes").getAsJsonPrimitive("summ").asInt
 
-    var cover: CoverPhoto? = null
+    val cover = deserializeCover(json)
+    val external = deserializeExternalSource(json)
+    val hasFullText = json.getAsJsonPrimitive("isReadMore").asBoolean
+    //TODO fix
+    return ArticlePreview(id, title, url, intro, date, commentsCount, likes, cover, external, hasFullText)
+  }
+
+  fun deserializeCover(json: JsonObject): CoverPhoto? {
     val coverJson = json.getAsNullableJsonObject("cover")
     if (coverJson != null) {
       val thumbnail = coverJson.get("thumbnailUrl")?.asString
       val full = coverJson.get("url")?.asString
       if (thumbnail != null && full != null) {
-        cover = CoverPhoto(thumbnail, full)
+        return CoverPhoto(thumbnail, full)
       }
     }
-    var external: ArticleExternalSource? = null
+    return null
+  }
+
+  fun deserializeExternalSource(json: JsonObject): ArticleExternalSource? {
     val externalJson = json.getAsNullableJsonObject("externalLink")
     if (externalJson != null) {
       val externalDomain = externalJson.get("domain")?.asString
       val externalUrl = externalJson.get("url")?.asString
       if (externalDomain != null && externalUrl != null) {
-        external = ArticleExternalSource(externalDomain, externalUrl)
+        return ArticleExternalSource(externalDomain, externalUrl)
       }
     }
-    //TODO fix
-    return ArticlePreview(id, title, url, intro, date, commentsCount, likes, cover, external)
+    return null
   }
 }

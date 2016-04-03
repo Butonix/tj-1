@@ -11,6 +11,7 @@ import com.a6v.tjreader.EventBus
 import com.a6v.tjreader.entities.Article
 import com.a6v.tjreader.entities.ArticleExternalSource
 import com.a6v.tjreader.extensions.isActivityResolved
+import com.a6v.tjreader.service.ArticleHtmlParser
 import com.a6v.tjreader.service.ArticlesService
 import rx.Observable
 import java.io.FileInputStream
@@ -22,8 +23,7 @@ class ArticleWebViewController {
 
   @Inject
   constructor(view: WebView, imageCache: CompositeDiskStorage, service: ArticlesService,
-    eventBus: EventBus)
-  {
+    eventBus: EventBus) {
     this.view = view
     this.view.setWebViewClient(ImageInterceptor(imageCache, service, eventBus))
   }
@@ -34,8 +34,7 @@ class ArticleWebViewController {
 }
 
 class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: ArticlesService,
-  val eventBus: EventBus): WebViewClient()
-{
+  val eventBus: EventBus) : WebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
     val uri = Uri.parse(url)
     val intent = Intent(Intent.ACTION_VIEW, uri)
@@ -77,26 +76,37 @@ class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: Articl
         service.getArticle(url.removePrefix("tjournal:").toInt()).toObservable()
           .flatMap {
             eventBus.post(ArticleLoadedEvent(it))
-            val preview = it.preview
-            val title = "<h2>" + preview.title + "</h2>\n"
-            val likes = (if (preview.likes > 0) "+" else "-") + preview.likes
-            val footer = String.format(footer, likes, preview.commentsCount)
-            if (preview.externalLink != null) {
-              Observable.just(
-                title,
-                createExternalSourceElement(preview.externalLink),
-                it.text, footer
-              )
-            } else {
-              Observable.just(title, it.text, footer)
-            }
-            //TODO add some error handling
+            createHtmlBody(it)
           }
           .onErrorResumeNext(Observable.just(onErrorMessage))
           .defaultIfEmpty(onErrorMessage),
         Observable.just("</body></html>")
       ).toBlocking().toIterable()
     ))
+  }
+
+  private fun createHtmlBody(article: Article): Observable<String> {
+    val preview = article.preview
+    val title = "<h2>" + preview.title + "</h2>\n"
+
+    val items = mutableListOf<String>(title)
+
+    if (preview.externalLink != null) {
+      items.add(createExternalSourceElement(preview.externalLink))
+    }
+    items.add(article.text)
+
+    val likes = (if (preview.likes > 0) "+" else "-") + preview.likes
+    val footer = String.format(footer, likes, preview.commentsCount)
+    items.add(footer)
+
+    if (!preview.hasFullText && preview.cover != null) {
+      val thumbnail = ArticleHtmlParser.createArticleImage(preview.cover.url,
+        preview.cover.thumbnailUrl, preview.url).outerHtml()
+      items.add(thumbnail)
+    }
+    return Observable.from(items)
+    //TODO add some error handling
   }
 
   private fun tryLoadImage(url: String): WebResourceResponse? {
@@ -118,7 +128,7 @@ const val articleHead = "<!doctype html>" +
   "<head>" +
   "<meta charset=\"utf-8\">" +
   "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" +
-  "<style>article img { max-width: 100%;}</style>" +
+  "<style>img { max-width: 100%;}</style>" +
   "</head>" +
   "<body>"
 const val footer = "<footer><table border=0 width=\"100%%\"><tr>" +
