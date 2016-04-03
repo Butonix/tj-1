@@ -54,6 +54,10 @@ android {
     lintOptions {
         abortOnError false
     }
+    productFlavors {
+        dev {}
+        prod {}
+    }
 }
 
 kapt {
