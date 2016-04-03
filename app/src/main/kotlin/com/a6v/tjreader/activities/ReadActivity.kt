@@ -1,6 +1,5 @@
 package com.a6v.tjreader.activities
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -198,7 +197,7 @@ interface ReadActivityComponent : AbstractActivityComponent {
 class WebViewModule {
   @Provides
   @PerActivity
-  fun provideWebView(activity: Activity): WebView {
+  fun provideWebView(activity: BaseActivity): WebView {
     return activity.findViewById(R.id.webView) as WebView
   }
 }

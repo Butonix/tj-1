@@ -1,6 +1,5 @@
 package com.a6v.tjreader.activities
 
-import android.app.Activity
 import dagger.Module
 import dagger.Provides
 import dagger.Subcomponent
@@ -13,14 +12,24 @@ import javax.inject.Scope
 @PerActivity
 @Subcomponent(modules = arrayOf(ActivityModule::class))
 interface AbstractActivityComponent {
-  fun activity(): Activity
+  fun activity(): BaseActivity
 }
 
 @Module
-class ActivityModule(val activity: Activity) {
+class ActivityModule(val activity: BaseActivity) {
   @Provides @PerActivity
-  fun activity(): Activity {
+  fun activity(): BaseActivity {
     return activity
+  }
+
+  @Provides
+  @PerActivity
+  fun provideRetainedState(activity: BaseActivity): ActivityRetainedState {
+    val last = activity.lastCustomNonConfigurationInstance
+    if (last != null && last is ActivityRetainedState) {
+      return last
+    }
+    return ActivityRetainedState()
   }
 }
 

@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import com.a6v.tjreader.EventBus
 import com.a6v.tjreader.R
 import com.a6v.tjreader.activities.MainActivity
+import com.a6v.tjreader.activities.ActivityRetainedState
 import com.a6v.tjreader.entities.Article
 import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.service.ArticleDownloader
@@ -20,6 +21,7 @@ import com.a6v.tjreader.widgets.ReadButtonController
 import com.a6v.tjreader.widgets.TempImagePresenter
 import kotlinx.android.synthetic.main.fragment_article_list_read.*
 import org.jetbrains.anko.toast
+import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
 import rx.lang.kotlin.subscribeWith
 import javax.inject.Inject
@@ -29,6 +31,7 @@ class FeedFragment : BaseFragment() {
   @Inject lateinit var imagePresenter: TempImagePresenter
   @Inject lateinit var articleDownloader: ArticleDownloader
   @Inject lateinit var eventBus: EventBus
+  @Inject lateinit var retainedState: ActivityRetainedState
 
   override fun injectSelf() {
     (activity as MainActivity).component.inject(this)
@@ -43,7 +46,14 @@ class FeedFragment : BaseFragment() {
     article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
     val adapter = ArticlesAdapter(imagePresenter, eventBus)
     article_list.adapter = adapter
-    service.getArticles(0)
+    val articles: Observable<List<ArticlePreview>>
+    if (retainedState.containsKey("articles")) {
+      articles = retainedState.get("articles") as Observable<List<ArticlePreview>>
+    } else {
+      articles = service.getArticles(0).cache()
+      retainedState.put("articles", articles)
+    }
+    articles
       .observeOn(AndroidSchedulers.mainThread())
       .compose(bindToLifecycle<List<ArticlePreview>>())
       .subscribeWith {
