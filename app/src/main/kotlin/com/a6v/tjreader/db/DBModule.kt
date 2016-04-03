@@ -3,7 +3,6 @@ package com.a6v.tjreader.db
 import com.a6v.tjreader.App
 import com.a6v.tjreader.service.ArticlesDAO
 import com.a6v.tjreader.service.ArticlesDaoInit
-import com.a6v.tjreader.service.DBService
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -12,19 +11,19 @@ import javax.inject.Singleton
 class DBModule {
   @Provides
   @Singleton
-  fun provideImagesDao(db: DBService): ImagesDao {
+  fun provideImagesDao(db: DBProvider): ImagesDao {
     return ImagesDao(db)
   }
 
   @Provides
   @Singleton
-  fun provideArticlesDao(db: DBService): ArticlesDAO {
+  fun provideArticlesDao(db: DBProvider): ArticlesDAO {
     return ArticlesDAO(db)
   }
 
   @Provides
   @Singleton
-  fun provideDB(app: App): DBService {
-    return DBService(app, listOf(ArticlesDaoInit(), ImagesDaoInit()))
+  fun provideDB(app: App): DBProvider {
+    return DBProvider(app, listOf(ArticlesDaoInit(), ImagesDaoInit()))
   }
 }

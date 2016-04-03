@@ -2,14 +2,13 @@ package com.a6v.tjreader.db
 
 import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
-import com.a6v.tjreader.service.DBService
 import com.a6v.tjreader.extensions.where
 import org.jetbrains.anko.db.*
 import rx.Completable
 import rx.Observable
 import rx.Single
 
-class ImagesDao(private val db: DBService) {
+class ImagesDao(private val db: DBProvider) {
   fun saveImage(articleId: Int, imageUrl: String, state: ImageState): Single<Long> {
     return Single.fromCallable {
       db.getWritable().insert(TABLE_NAME,

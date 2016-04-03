@@ -2,6 +2,7 @@ package com.a6v.tjreader.service
 
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import com.a6v.tjreader.db.DBProvider
 import com.a6v.tjreader.db.DaoInit
 import com.a6v.tjreader.entities.*
 import com.a6v.tjreader.extensions.*
@@ -13,7 +14,7 @@ import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import java.util.*
 
-class ArticlesDAO(private val db: DBService) {
+class ArticlesDAO(private val db: DBProvider) {
   private val changesSubject = PublishSubject.create<Any>()
 
   fun getArticle(id: Int): Single<Article> {
@@ -227,5 +228,4 @@ class ArticlesDaoInit: DaoInit {
       "text" to TEXT
     )
   }
-
 }

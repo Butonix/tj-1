@@ -1,16 +1,11 @@
-package com.a6v.tjreader.service
+package com.a6v.tjreader.db
 
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.a6v.tjreader.App
-import com.a6v.tjreader.db.DaoInit
 import org.jetbrains.anko.db.*
 
-/**
- * Created by alexey on 22.02.16.
- */
-
-class DBService(app: App, daoIniters: List<DaoInit>) {
+class DBProvider(app: App, daoIniters: List<DaoInit>) {
   private val helper = DBOpenHelper(app, daoIniters)
 
   fun getWritable(): SQLiteDatabase {
