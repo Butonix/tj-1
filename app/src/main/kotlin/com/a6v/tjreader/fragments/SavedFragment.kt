@@ -5,10 +5,13 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.a6v.tjreader.EventBus
 import com.a6v.tjreader.R
 import com.a6v.tjreader.activities.MainActivity
+import com.a6v.tjreader.activities.ReadActivity
 import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.service.ArticlesService
+import com.a6v.tjreader.widgets.ArticleClickEvent
 import com.a6v.tjreader.widgets.ArticlesAdapter
 import com.a6v.tjreader.widgets.PermanentImagePresenter
 import com.a6v.tjreader.widgets.ReadButtonController
@@ -23,6 +26,7 @@ import javax.inject.Inject
 class SavedFragment : BaseFragment() {
   @Inject lateinit var service: ArticlesService
   @Inject lateinit var imageInteractor: PermanentImagePresenter
+  @Inject lateinit var eventBus: EventBus
 
   override fun injectSelf() {
     (activity as MainActivity).component.inject(this)
@@ -35,8 +39,13 @@ class SavedFragment : BaseFragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     setTitle(0)
     article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-    article_list.adapter = ArticlesAdapter(imageInteractor)
+    article_list.adapter = ArticlesAdapter(imageInteractor, eventBus)
     ReadButtonController.run(service, this)
+    eventBus.observe(ArticleClickEvent::class.java)
+      .compose(bindToLifecycle<ArticleClickEvent>())
+      .subscribe {
+        activity.startActivity(ReadActivity.getIntent(activity, it.preview.id))
+      }
   }
 
   override fun onResume() {

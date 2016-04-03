@@ -7,6 +7,7 @@ import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.a6v.tjreader.EventBus
 import com.a6v.tjreader.R
 import com.a6v.tjreader.activities.MainActivity
 import com.a6v.tjreader.entities.Article
@@ -30,6 +31,7 @@ class FeedFragment : BaseFragment() {
   @Inject lateinit var service: ArticlesService
   @Inject lateinit var imagePresenter: TempImagePresenter
   @Inject lateinit var articleDownloader: ArticleDownloader
+  @Inject lateinit var eventBus: EventBus
 
   override fun injectSelf() {
     (activity as MainActivity).component.inject(this)
@@ -42,7 +44,7 @@ class FeedFragment : BaseFragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     setTitle(0)
     article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-    val adapter = ArticlesAdapter(imagePresenter)
+    val adapter = ArticlesAdapter(imagePresenter, eventBus)
     article_list.adapter = adapter
     service.getArticles(0)
       .observeOn(AndroidSchedulers.mainThread())

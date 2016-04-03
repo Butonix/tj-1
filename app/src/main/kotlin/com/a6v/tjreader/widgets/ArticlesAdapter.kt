@@ -4,12 +4,14 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
+import com.a6v.tjreader.EventBus
 import com.a6v.tjreader.ImageLoaderImpl
 import com.a6v.tjreader.R
 import com.a6v.tjreader.entities.ArticlePreview
 import javax.inject.Inject
 
-class ArticlesAdapter(val imagePresenter: ImagePresenter) : RecyclerView.Adapter<ArticleViewHolder>() {
+class ArticlesAdapter(private val imagePresenter: ImagePresenter,
+  private val eventBus: EventBus) : RecyclerView.Adapter<ArticleViewHolder>() {
   var inflater: LayoutInflater? = null
   val items: MutableList<ArticlePreview> = mutableListOf()
 
@@ -26,7 +28,7 @@ class ArticlesAdapter(val imagePresenter: ImagePresenter) : RecyclerView.Adapter
       inflater = LayoutInflater.from(parent.context)
     }
     val view = inflater!!.inflate(R.layout.widget_article_preview, parent, false)
-    return ArticleViewHolder(view, imagePresenter)
+    return ArticleViewHolder(view, imagePresenter, eventBus)
   }
 }
 

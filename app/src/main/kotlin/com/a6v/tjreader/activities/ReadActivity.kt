@@ -1,6 +1,7 @@
 package com.a6v.tjreader.activities
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -160,13 +161,28 @@ class ReadActivity : BaseActivity() {
   }
 
   private fun loadNextArticle() {
-    val id = articleIds[0]
+    val id: Int
+    if (intent.hasExtra(EXTRA_ARTICLE_ID)) {
+      id = intent.getIntExtra(EXTRA_ARTICLE_ID, 0)
+    } else {
+      id = articleIds[0]
+    }
     loadArticle(id)
     articleMenu.setChecked(id)
   }
 
   private fun loadArticle(id: Int) {
     webViewController.loadArticle(id)
+  }
+
+  companion object {
+    private const val EXTRA_ARTICLE_ID = "articleId"
+
+    fun getIntent(context: Context, articleId: Int): Intent {
+      val intent = Intent(context, ReadActivity::class.java)
+      intent.putExtra(EXTRA_ARTICLE_ID, articleId)
+      return intent
+    }
   }
 }
 

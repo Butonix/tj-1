@@ -2,13 +2,16 @@ package com.a6v.tjreader.widgets
 
 import android.support.v7.widget.RecyclerView
 import android.view.View
+import com.a6v.tjreader.EventBus
 import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.extensions.gone
 import com.a6v.tjreader.extensions.toggleVisibility
 import com.a6v.tjreader.extensions.toggleVisibilityAndText
 import kotlinx.android.synthetic.main.widget_article_preview.view.*
 
-class ArticleViewHolder(itemView: View, val imageLoader: ImagePresenter) : RecyclerView.ViewHolder(itemView) {
+class ArticleViewHolder(itemView: View,
+  private val imageLoader: ImagePresenter,
+  private val eventBus: EventBus) : RecyclerView.ViewHolder(itemView) {
   fun bind(article: ArticlePreview) {
     itemView.title.text = article.title
     itemView.intro.text = article.intro
@@ -21,5 +24,8 @@ class ArticleViewHolder(itemView: View, val imageLoader: ImagePresenter) : Recyc
     itemView.likes.toggleVisibility(article.likes != 0)
     //todo colors
     itemView.likes.text = (if (article.likes > 0) "+" else "-") + article.likes
+    itemView.setOnClickListener { eventBus.post(ArticleClickEvent(article)) }
   }
 }
+
+data class ArticleClickEvent(val preview: ArticlePreview)

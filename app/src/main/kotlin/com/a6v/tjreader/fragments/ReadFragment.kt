@@ -5,6 +5,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.a6v.tjreader.EventBus
 import com.a6v.tjreader.R
 import com.a6v.tjreader.activities.MainActivity
 import com.a6v.tjreader.entities.ArticlePreview
@@ -22,6 +23,7 @@ import javax.inject.Inject
 class ReadFragment : BaseFragment() {
   @Inject lateinit var dao: ArticlesDAO
   @Inject lateinit var imageInteractor: PermanentImagePresenter
+  @Inject lateinit var eventBus: EventBus
 
   override fun injectSelf() {
     (activity as MainActivity).component.inject(this)
@@ -34,7 +36,7 @@ class ReadFragment : BaseFragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     setTitle(0)
     article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-    val adapter = ArticlesAdapter(imageInteractor)
+    val adapter = ArticlesAdapter(imageInteractor, eventBus)
     article_list.adapter = adapter
     dao.getReadArticles()
       .subscribeOn(Schedulers.computation())
