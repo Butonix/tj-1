@@ -24,9 +24,6 @@ import rx.android.schedulers.AndroidSchedulers
 import rx.lang.kotlin.subscribeWith
 import javax.inject.Inject
 
-/**
- * Created by alexey on 27.02.16.
- */
 class FeedFragment : BaseFragment() {
   @Inject lateinit var service: ArticlesService
   @Inject lateinit var imagePresenter: TempImagePresenter

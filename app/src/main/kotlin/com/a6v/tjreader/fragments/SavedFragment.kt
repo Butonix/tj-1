@@ -20,9 +20,6 @@ import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import javax.inject.Inject
 
-/**
- * Created by alexey on 27.02.16.
- */
 class SavedFragment : BaseFragment() {
   @Inject lateinit var service: ArticlesService
   @Inject lateinit var imageInteractor: PermanentImagePresenter
@@ -64,11 +61,6 @@ class SavedFragment : BaseFragment() {
         }
         //setTitle(it.size)
       })//TODO handle error
-  }
-
-  override fun onDestroyView() {
-    //clearFindViewByIdCache()
-    super.onDestroyView()
   }
 
   private fun setTitle(count: Int) {
