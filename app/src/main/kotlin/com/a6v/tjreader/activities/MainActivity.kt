@@ -3,6 +3,7 @@ package com.a6v.tjreader.activities
 import android.content.res.Configuration
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import com.a6v.tjreader.R
 import com.a6v.tjreader.extensions.getAppComponent
@@ -54,6 +55,14 @@ class MainActivity : BaseActivity() {
   override fun onConfigurationChanged(newConfig: Configuration?) {
     super.onConfigurationChanged(newConfig)
     drawerToggle.onConfigurationChanged(newConfig)
+  }
+
+  override fun onBackPressed() {
+    if (drawer.isDrawerOpen(GravityCompat.START)) {
+      drawer.closeDrawers()
+    } else {
+      super.onBackPressed()
+    }
   }
 
   fun showFragment(fragment: Fragment) {

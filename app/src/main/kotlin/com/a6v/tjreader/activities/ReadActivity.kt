@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.NavigationView
+import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.view.Menu
 import android.view.MenuItem
@@ -148,6 +149,14 @@ class ReadActivity : BaseActivity() {
       }
     }
     return super.onOptionsItemSelected(item)
+  }
+
+  override fun onBackPressed() {
+    if (drawer.isDrawerOpen(GravityCompat.END)) {
+      drawer.closeDrawers()
+    } else {
+      super.onBackPressed()
+    }
   }
 
   private fun loadNextArticle() {
