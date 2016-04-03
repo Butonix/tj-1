@@ -25,14 +25,14 @@ class ImageLoaderImpl {
 
   constructor(context: Context, diskCache: DiskCache) {
     loader = ImageLoader.getInstance()
-    loader.init(
-      ImageLoaderConfiguration.Builder(context)
-        .diskCache(diskCache)
-        .imageDownloader(ImageDownloaderImpl(BaseImageDownloader(context, 5000, 5000)))
-        .defaultDisplayImageOptions(getDefaultImageOptions().build())
-        .writeDebugLogs()
-        .build()
-    )
+    val builder = ImageLoaderConfiguration.Builder(context)
+      .diskCache(diskCache)
+      .imageDownloader(ImageDownloaderImpl(BaseImageDownloader(context, 5000, 5000)))
+      .defaultDisplayImageOptions(getDefaultImageOptions().build())
+    if (BuildConfig.LOG_ENABLED) {
+      builder.writeDebugLogs()
+    }
+    loader.init(builder.build())
   }
 
   fun displayImage(uri: String, view: ImageView, permanent: Boolean = false) {

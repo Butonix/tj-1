@@ -1,11 +1,13 @@
 package com.a6v.tjreader.network
 
+import com.a6v.tjreader.BuildConfig
 import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.entities.ArticleExternalSource
 import com.a6v.tjreader.entities.CoverPhoto
 import com.a6v.tjreader.extensions.getAsNullableJsonObject
 import com.google.gson.*
 import com.squareup.okhttp.OkHttpClient
+import com.squareup.okhttp.logging.HttpLoggingInterceptor
 import dagger.Module
 import dagger.Provides
 import retrofit.RestAdapter
@@ -33,10 +35,11 @@ class NetworkModule {
   @Provides
   @Singleton
   fun provideAPI(client: OkHttpClient, gson: Gson): TJournalAPI {
+    val logLevel = if (BuildConfig.LOG_ENABLED) RestAdapter.LogLevel.FULL else RestAdapter.LogLevel.NONE
     return RestAdapter.Builder()
       .setClient(OkClient(client))
       .setEndpoint("https://api.tjournal.ru/2.2/")
-      .setLogLevel(RestAdapter.LogLevel.FULL)
+      .setLogLevel(logLevel)
       .setConverter(GsonConverter(gson))
       .build()
       .create(TJournalAPI::class.java)
@@ -48,6 +51,11 @@ class NetworkModule {
     val client = OkHttpClient()
     client.setReadTimeout(5, TimeUnit.SECONDS)
     client.setConnectTimeout(5, TimeUnit.SECONDS)
+    if (BuildConfig.LOG_ENABLED) {
+      val logger = HttpLoggingInterceptor()
+      logger.level = HttpLoggingInterceptor.Level.BASIC
+      client.networkInterceptors().add(logger)
+    }
     return client
   }
 
