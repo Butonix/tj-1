@@ -5,8 +5,8 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.a6v.tjreader.App
 import org.jetbrains.anko.db.*
 
-class DBProvider(app: App, daoIniters: List<DaoInit>) {
-  private val helper = DBOpenHelper(app, daoIniters)
+class DBProvider(app: App, createCallbacks: List<(SQLiteDatabase) -> Unit>) {
+  private val helper = DBOpenHelper(app, createCallbacks)
 
   fun getWritable(): SQLiteDatabase {
     return helper.writableDatabase
@@ -17,12 +17,12 @@ class DBProvider(app: App, daoIniters: List<DaoInit>) {
   }
 }
 
-class DBOpenHelper(app: App, private val daoIniters: List<DaoInit>)
+class DBOpenHelper(app: App, private val createCallbacks: List<(SQLiteDatabase) -> Unit>)
 : SQLiteOpenHelper(app, "tjournal.db", null, 1) {
   override fun onCreate(db: SQLiteDatabase) {
-    for (d in daoIniters) {
+    for (callback in createCallbacks) {
       db.transaction {
-        d.onCreate(db)
+        callback(db)
       }
     }
   }

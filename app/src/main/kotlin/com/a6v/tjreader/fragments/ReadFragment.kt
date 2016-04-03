@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import com.a6v.tjreader.R
 import com.a6v.tjreader.activities.MainActivity
 import com.a6v.tjreader.entities.ArticlePreview
-import com.a6v.tjreader.service.ArticlesDAO
+import com.a6v.tjreader.db.ArticlesDAO
 import com.a6v.tjreader.widgets.ArticlesAdapter
 import com.a6v.tjreader.widgets.PermanentImagePresenter
 import kotlinx.android.synthetic.main.fragment_article_list.*

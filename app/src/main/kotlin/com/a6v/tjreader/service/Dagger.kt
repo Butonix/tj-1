@@ -2,6 +2,7 @@ package com.a6v.tjreader.service
 
 import com.a6v.tjreader.CompositeDiskStorage
 import com.a6v.tjreader.ImageLoaderImpl
+import com.a6v.tjreader.db.ArticlesDAO
 import com.a6v.tjreader.db.ImagesDao
 import com.a6v.tjreader.network.HtmlDownloader
 import com.a6v.tjreader.network.TJournalAPI

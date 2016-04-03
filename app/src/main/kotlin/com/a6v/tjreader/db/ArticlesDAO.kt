@@ -1,11 +1,12 @@
-package com.a6v.tjreader.service
+package com.a6v.tjreader.db
 
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
-import com.a6v.tjreader.db.DBProvider
-import com.a6v.tjreader.db.DaoInit
+import android.provider.BaseColumns
 import com.a6v.tjreader.entities.*
-import com.a6v.tjreader.extensions.*
+import com.a6v.tjreader.extensions.getInt
+import com.a6v.tjreader.extensions.getLong
+import com.a6v.tjreader.extensions.getString
 import org.jetbrains.anko.db.*
 import rx.Completable
 import rx.Observable
@@ -14,13 +15,12 @@ import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import java.util.*
 
-class ArticlesDAO(private val db: DBProvider) {
+class ArticlesDAO(db: DBProvider) : BaseDao(NAME, db) {
   private val changesSubject = PublishSubject.create<Any>()
 
   fun getArticle(id: Int): Single<Article> {
     return Single.fromCallable {
-      db.getReadable()
-        .select("article")
+      select()
         .where("id=" + id)
         .exec {
           if (!this.moveToFirst()) {
@@ -34,7 +34,7 @@ class ArticlesDAO(private val db: DBProvider) {
 
   fun savePreview(preview: ArticlePreview, status: ArticleStatus): Single<ArticlePreview> {
     return Single.fromCallable {
-      db.getWritable().insert(TABLE_NAME,
+      insert(
         "status" to statusToInt(status),
         "id" to preview.id,
         "title" to preview.title,
@@ -55,12 +55,7 @@ class ArticlesDAO(private val db: DBProvider) {
 
   fun updateArticle(preview: ArticlePreview, text: String): Single<Article> {
     return Single.fromCallable {
-      db.getWritable()
-        .update(TABLE_NAME,
-          "text" to text
-        )
-        .where("id=" + preview.id)
-        .exec()
+      update("text" to text).where("id=" + preview.id).exec()
       //TODO check exec result
       notifyDataChanged()
       Article(preview, text)
@@ -69,10 +64,7 @@ class ArticlesDAO(private val db: DBProvider) {
 
   fun updateArticle(id: Int, status: ArticleStatus): Completable {
     return Completable.fromAction {
-      db.getWritable()
-        .update(TABLE_NAME,
-          "status" to statusToInt(status)
-        )
+      update("status" to statusToInt(status))
         .where("id=" + id)
         .exec()
       //TODO check exec result
@@ -86,19 +78,17 @@ class ArticlesDAO(private val db: DBProvider) {
 
   fun getReadyArticlesIds(): Observable<List<Pair<Int, String>>> {
     return Observable.fromCallable {
-      db.getReadable()
-        .select("article", "id", "title")
+      select("id", "title")
         .where("status=" + statusToInt(ArticleStatus.READY))
         .orderBy("date", SqlOrderDirection.DESC)
-        .parseList(rowParser { id: Long, title:String -> Pair(id.toInt(), title) })
+        .parseList(rowParser { id: Long, title: String -> Pair(id.toInt(), title) })
     }
   }
 
   fun getSavedIds(ids: List<Int>): Observable<List<Int>> {
     //TODO batch ids
     return Observable.fromCallable {
-      db.getReadable()
-        .select("article", "id")
+      select("id")
         .where("status>=" + statusToInt(ArticleStatus.READY) + " AND id in (" + ids.joinToString(",") + ")")
         .parseList(IntParser)
     }
@@ -110,8 +100,7 @@ class ArticlesDAO(private val db: DBProvider) {
 
   fun countArticlesByStatus(status: ArticleStatus): Observable<Int> {
     return Observable.fromCallable {
-      db.getReadable()
-        .select("article", "count(*)")
+      selectCount()
         .where("status=" + statusToInt(status))
         .parseSingle(IntParser)
     }
@@ -119,8 +108,7 @@ class ArticlesDAO(private val db: DBProvider) {
 
   fun countUnreadArticles(): Observable<Int> {
     return Observable.fromCallable {
-      db.getReadable()
-        .select("article", "count(*)")
+      selectCount()
         .where("status!=" + statusToInt(ArticleStatus.READ))
         .parseSingle(IntParser)
     }
@@ -128,15 +116,14 @@ class ArticlesDAO(private val db: DBProvider) {
 
   fun markArticleRead(id: Int): Observable<Any> {
     return Observable.fromCallable {
-      db.getWritable().update("article", "status" to statusToInt(ArticleStatus.READ)).where("id=" + id).exec()
+      update("status" to statusToInt(ArticleStatus.READ)).where("id=" + id).exec()
       notifyDataChanged()
     }
   }
 
   fun getPreviews(where: String): Observable<List<ArticlePreview>> {
     return Observable.fromCallable {
-      db.getReadable()
-        .select("article", "*")
+      select()
         .where(where)
         .exec {
           val result = mutableListOf<ArticlePreview>()
@@ -150,8 +137,7 @@ class ArticlesDAO(private val db: DBProvider) {
 
   fun getReadArticles(): Observable<List<ArticlePreview>> {
     return Observable.fromCallable {
-      db.getReadable()
-        .select("article", "*")
+      select()
         .where("status=" + statusToInt(ArticleStatus.READ))
         .exec {
           val result = mutableListOf<ArticlePreview>()
@@ -165,7 +151,7 @@ class ArticlesDAO(private val db: DBProvider) {
 
   fun queryArticles(status: ArticleStatus): Observable<ArticlePreview> {
     return Observable.create { subscriber ->
-      db.getReadable().select(TABLE_NAME, "*")
+      select()
         .where("status=" + statusToInt(status))
         .exec {
           while (this.moveToNext()) {
@@ -201,31 +187,31 @@ class ArticlesDAO(private val db: DBProvider) {
   }
 
   companion object {
-    const val TABLE_NAME = "article"//TODO rename later
+    const val NAME = "articles"
 
     fun statusToInt(status: ArticleStatus): Int {
       return status.ordinal//TODO
     }
-  }
-}
 
-class ArticlesDaoInit: DaoInit {
-  override fun onCreate(db: SQLiteDatabase) {
-    db.createTable(ArticlesDAO.TABLE_NAME, true,
-      "_id" to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
-      "status" to INTEGER,
-      "id" to INTEGER + UNIQUE,
-      "title" to TEXT,
-      "url" to TEXT,
-      "intro" to TEXT,
-      "date" to INTEGER,
-      "commentsCount" to INTEGER,
-      "likes" to INTEGER,
-      "coverThumbnailUrl" to TEXT,
-      "coverUrl" to TEXT,
-      "externalDomain" to TEXT,
-      "externalUrl" to TEXT,
-      "text" to TEXT
-    )
+    fun create(): (SQLiteDatabase) -> Unit {
+      return {
+        it.createTable(NAME, true,
+          BaseColumns._ID to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
+          "status" to INTEGER,
+          "id" to INTEGER + UNIQUE,
+          "title" to TEXT,
+          "url" to TEXT,
+          "intro" to TEXT,
+          "date" to INTEGER,
+          "commentsCount" to INTEGER,
+          "likes" to INTEGER,
+          "coverThumbnailUrl" to TEXT,
+          "coverUrl" to TEXT,
+          "externalDomain" to TEXT,
+          "externalUrl" to TEXT,
+          "text" to TEXT
+        )
+      }
+    }
   }
 }

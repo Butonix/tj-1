@@ -15,7 +15,7 @@ import com.a6v.tjreader.entities.Article
 import com.a6v.tjreader.extensions.getAppComponent
 import com.a6v.tjreader.extensions.isActivityResolved
 import com.a6v.tjreader.fragments.ArticleFragment
-import com.a6v.tjreader.service.ArticlesDAO
+import com.a6v.tjreader.db.ArticlesDAO
 import com.a6v.tjreader.widgets.ArticleLoadedEvent
 import com.a6v.tjreader.widgets.ArticleWebViewController
 import dagger.Module

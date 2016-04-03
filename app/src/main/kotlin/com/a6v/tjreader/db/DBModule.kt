@@ -1,8 +1,6 @@
 package com.a6v.tjreader.db
 
 import com.a6v.tjreader.App
-import com.a6v.tjreader.service.ArticlesDAO
-import com.a6v.tjreader.service.ArticlesDaoInit
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -24,6 +22,6 @@ class DBModule {
   @Provides
   @Singleton
   fun provideDB(app: App): DBProvider {
-    return DBProvider(app, listOf(ArticlesDaoInit(), ImagesDaoInit()))
+    return DBProvider(app, listOf(ArticlesDAO.create(), ImagesDao.create()))
   }
 }

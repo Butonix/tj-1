@@ -1,5 +1,6 @@
 package com.a6v.tjreader.service
 
+import com.a6v.tjreader.db.ArticlesDAO
 import com.a6v.tjreader.entities.Article
 import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.entities.ArticleStatus
