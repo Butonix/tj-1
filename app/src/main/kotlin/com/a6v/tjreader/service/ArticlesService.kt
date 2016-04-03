@@ -13,6 +13,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.parser.Tag
 import rx.Observable
+import rx.Single
 
 /**
  * Created by alexey on 21.02.16.
@@ -42,40 +43,7 @@ class ArticlesService(
       }
   }
 
-  fun downloadArticle(preview: ArticlePreview): Observable<Article> {
-    return dao.savePreview(preview)
-      .flatMap { saved ->
-        downloader
-          .downloadArticle(saved.url)
-          .retry(2)
-          .map {
-            val parser = ArticleHtmlParser(it)
-            parser.replaceVideosWithThumbnails()
-          }
-          .flatMap { parser ->
-            Observable.zip(
-              Observable.fromCallable {
-                val text = parser.getHtml()
-                dao.saveText(saved.id, text)
-                if (saved.cover != null) {
-                  imageDiskStorage.copyToPermanent(saved.cover.thumbnailUrl)
-                }
-                Article(saved, text)
-              },
-              Observable.from(parser.findImageUrls())
-                .flatMap {
-                  Observable.fromCallable {
-                    imageLoader.downloadImage(it, true)
-                    true
-                  }.retry(2)
-                }.lastOrDefault(true),
-              { article, imagesLoadedTrue -> article }
-            )
-          }
-      }
-  }
-
-  fun getArticle(id: Int): Observable<Article> {
+  fun getArticle(id: Int): Single<Article> {
     return dao.getArticle(id)
   }
 
@@ -92,7 +60,7 @@ class ArticlesService(
 
   fun getSavedPreviews(): Observable<List<ArticlePreview>> {
     return dao.observeArticleChanges().startWith("")
-      .flatMap { dao.getPreviews("status=" + dao.statusToInt(ArticleStatus.READY)) }
+      .flatMap { dao.getPreviews("status=" + ArticlesDAO.statusToInt(ArticleStatus.READY)) }
   }
 }
 

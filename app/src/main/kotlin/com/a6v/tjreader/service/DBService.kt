@@ -3,17 +3,15 @@ package com.a6v.tjreader.service
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.a6v.tjreader.App
-import dagger.Module
-import dagger.Provides
+import com.a6v.tjreader.db.DaoInit
 import org.jetbrains.anko.db.*
-import javax.inject.Singleton
 
 /**
  * Created by alexey on 22.02.16.
  */
 
-class DBService(app: App) {
-  private val helper = DBOpenHelper(app)
+class DBService(app: App, daoIniters: List<DaoInit>) {
+  private val helper = DBOpenHelper(app, daoIniters)
 
   fun getWritable(): SQLiteDatabase {
     return helper.writableDatabase
@@ -22,37 +20,18 @@ class DBService(app: App) {
   fun getReadable(): SQLiteDatabase {
     return helper.readableDatabase
   }
-
-  inner class DBOpenHelper(app: App) : SQLiteOpenHelper(app, "tjournal.db", null, 1) {
-    override fun onCreate(db: SQLiteDatabase) {
-      db.createTable("article", true,
-        "_id" to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
-        "status" to INTEGER,
-        "id" to INTEGER + UNIQUE,
-        "title" to TEXT,
-        "url" to TEXT,
-        "intro" to TEXT,
-        "date" to INTEGER,
-        "commentsCount" to INTEGER,
-        "likes" to INTEGER,
-        "coverThumbnailUrl" to TEXT,
-        "coverUrl" to TEXT,
-        "externalDomain" to TEXT,
-        "externalUrl" to TEXT,
-        "text" to TEXT
-      )
-    }
-
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-    }
-  }
 }
 
-@Module
-class DBModule {
-  @Provides
-  @Singleton
-  fun provideDB(app: App): DBService {
-    return DBService(app)
+class DBOpenHelper(app: App, private val daoIniters: List<DaoInit>)
+: SQLiteOpenHelper(app, "tjournal.db", null, 1) {
+  override fun onCreate(db: SQLiteDatabase) {
+    for (d in daoIniters) {
+      db.transaction {
+        d.onCreate(db)
+      }
+    }
+  }
+
+  override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
   }
 }

@@ -74,7 +74,7 @@ class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: Articl
     return WebResourceResponse("text/html", "utf-8", ArticleInputStream(
       Observable.concat(
         Observable.just(articleHead),
-        service.getArticle(url.removePrefix("tjournal:").toInt())
+        service.getArticle(url.removePrefix("tjournal:").toInt()).toObservable()
           .flatMap {
             eventBus.post(ArticleLoadedEvent(it))
             val title = "<h2>" + it.preview.title + "</h2>\n"

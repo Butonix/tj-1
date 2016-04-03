@@ -11,6 +11,7 @@ import com.a6v.tjreader.R
 import com.a6v.tjreader.activities.MainActivity
 import com.a6v.tjreader.entities.Article
 import com.a6v.tjreader.entities.ArticlePreview
+import com.a6v.tjreader.service.ArticleDownloader
 import com.a6v.tjreader.service.ArticlesService
 import com.a6v.tjreader.utils.logError
 import com.a6v.tjreader.widgets.ArticlesAdapter
@@ -28,6 +29,7 @@ import javax.inject.Inject
 class FeedFragment : BaseFragment() {
   @Inject lateinit var service: ArticlesService
   @Inject lateinit var imagePresenter: TempImagePresenter
+  @Inject lateinit var articleDownloader: ArticleDownloader
 
   override fun injectSelf() {
     (activity as MainActivity).component.inject(this)
@@ -64,8 +66,9 @@ class FeedFragment : BaseFragment() {
 
       override fun onSwiped(vh: RecyclerView.ViewHolder, direction: Int) {
         val position = vh.adapterPosition
-        service.downloadArticle(adapter.items[position])
+        articleDownloader.downloadArticle(adapter.items[position])
           .observeOn(AndroidSchedulers.mainThread())
+          .toObservable()
           .cache()
           .compose(bindToLifecycle<Article>())
           .subscribeWith {
@@ -78,6 +81,8 @@ class FeedFragment : BaseFragment() {
         adapter.notifyItemRemoved(position)
       }
     }).attachToRecyclerView(article_list)
+
+    articleDownloader.downloadPendingArticles()
   }
 
   private fun setTitle(count: Int) {

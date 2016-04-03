@@ -156,7 +156,11 @@ class CompositeDiskStorage : DiskCache {
     if (file != null) {
       file.renameTo(File(permanentCache.directory, file.name))
       //FIXME correct removal from temp
-    }
+    }//TODO throw error?
+  }
+
+  fun tempExists(uri: String): Boolean {
+    return temporaryCache.get(uri) != null
   }
 
   private inline fun <TResult> delegate(uri: String, func: (DiskCache, String) -> TResult): TResult {

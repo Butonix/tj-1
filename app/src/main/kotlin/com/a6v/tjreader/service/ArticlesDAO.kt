@@ -1,10 +1,13 @@
 package com.a6v.tjreader.service
 
 import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
+import com.a6v.tjreader.db.DaoInit
 import com.a6v.tjreader.entities.*
 import com.a6v.tjreader.extensions.*
 import org.jetbrains.anko.db.*
 import rx.Observable
+import rx.Single
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import java.util.*
@@ -12,38 +15,24 @@ import java.util.*
 class ArticlesDAO(private val db: DBService) {
   private val changesSubject = PublishSubject.create<Any>()
 
-  fun getArticle(id: Int): Observable<Article> {
-    return Observable.fromCallable {
+  fun getArticle(id: Int): Single<Article> {
+    return Single.fromCallable {
       db.getReadable()
         .select("article")
         .where("id=" + id)
         .exec {
           if (!this.moveToFirst()) {
-            return@exec null
+            throw NullPointerException("Article with $id not found")
           }
           Article(readPreview(this), this.getString("text")!!)
         }
     }
-      .filterNonNull()
       .subscribeOn(Schedulers.computation())
   }
 
-  fun getArticleSync(id: Int): Article? {
-    return db.getReadable()
-      .select("article")
-      .where("id=" + id)
-      .exec {
-        if (!this.moveToFirst()) {
-          return@exec null
-        }
-        Article(readPreview(this), this.getString("text")!!)
-      }
-  }
-
-  fun savePreview(preview: ArticlePreview): Observable<ArticlePreview> {
-    return Observable.fromCallable {
-      val status = ArticleStatus.WAITING
-      val _id = db.getWritable().insert("article",
+  fun savePreview(preview: ArticlePreview, status: ArticleStatus): Single<ArticlePreview> {
+    return Single.fromCallable {
+      db.getWritable().insert(TABLE_NAME,
         "status" to statusToInt(status),
         "id" to preview.id,
         "title" to preview.title,
@@ -57,8 +46,9 @@ class ArticlesDAO(private val db: DBService) {
         "externalDomain" to preview.externalLink?.domain,
         "externalUrl" to preview.externalLink?.url
       )
-      preview.copy(_id = _id, status = status)
-    }.doOnNext { notifyDataChanged() }
+      notifyDataChanged()
+      preview
+    }
   }
 
   fun saveText(id: Int, text: String) {
@@ -156,15 +146,16 @@ class ArticlesDAO(private val db: DBService) {
     }
   }
 
+  fun queryArticles(status: ArticleStatus): Observable<ArticlePreview> {
+    return Observable.empty()
+  }
+
   private fun readPreview(c: Cursor): ArticlePreview {
     val thumbnail = c.getString("coverThumbnailUrl")
     val fullCover = c.getString("coverUrl")
-    val status = c.getInt("status")
     val externalDomain = c.getString("externalDomain")
     val externalUrl = c.getString("externalUrl")
     return ArticlePreview(
-      c.getLong("_id"),
-      ArticleStatus.values().first { it.ordinal == status },
       c.getInt("id"),
       c.getString("title")!!,
       c.getString("url")!!,
@@ -177,7 +168,33 @@ class ArticlesDAO(private val db: DBService) {
     )
   }
 
-  fun statusToInt(status: ArticleStatus): Int {
-    return status.ordinal//TODO
+  companion object {
+    const val TABLE_NAME = "article"//TODO rename later
+
+    fun statusToInt(status: ArticleStatus): Int {
+      return status.ordinal//TODO
+    }
   }
+}
+
+class ArticlesDaoInit: DaoInit {
+  override fun onCreate(db: SQLiteDatabase) {
+    db.createTable(ArticlesDAO.TABLE_NAME, true,
+      "_id" to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
+      "status" to INTEGER,
+      "id" to INTEGER + UNIQUE,
+      "title" to TEXT,
+      "url" to TEXT,
+      "intro" to TEXT,
+      "date" to INTEGER,
+      "commentsCount" to INTEGER,
+      "likes" to INTEGER,
+      "coverThumbnailUrl" to TEXT,
+      "coverUrl" to TEXT,
+      "externalDomain" to TEXT,
+      "externalUrl" to TEXT,
+      "text" to TEXT
+    )
+  }
+
 }

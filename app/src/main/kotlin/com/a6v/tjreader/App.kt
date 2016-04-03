@@ -6,7 +6,7 @@ import com.a6v.tjreader.activities.MainActivityComponent
 import com.a6v.tjreader.activities.ReadActivityComponent
 import com.a6v.tjreader.network.NetworkModule
 import com.a6v.tjreader.service.ArticlesModule
-import com.a6v.tjreader.service.DBModule
+import com.a6v.tjreader.db.DBModule
 import dagger.Component
 import dagger.Module
 import dagger.Provides

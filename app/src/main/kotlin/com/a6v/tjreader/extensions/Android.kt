@@ -11,6 +11,8 @@ import android.view.View
 import android.widget.TextView
 import com.a6v.tjreader.App
 import com.a6v.tjreader.AppComponent
+import org.jetbrains.anko.db.SelectQueryBuilder
+import org.jetbrains.anko.db.UpdateQueryBuilder
 
 /**
  * Created by alexey on 20.02.16.
@@ -53,6 +55,30 @@ fun <T : TextView> T.toggleVisibilityAndText(visible: Boolean, value: Any) {
 
 fun SQLiteDatabase.insert(tableName: String, vararg values: Pair<String, Any?>): Long {
   return insert(tableName, null, values._toContentValues())
+}
+
+fun SelectQueryBuilder.where(vararg values: Pair<String, Any>): SelectQueryBuilder {
+  //TODO better solution
+  val args = mutableListOf<Pair<String, Any>>()
+  val params = mutableListOf<String>()
+  for (kv in values) {
+    val column = kv.first
+    args.add(Pair(column, kv.second))
+    params.add("$column={$column}")
+  }
+  return where(params.joinToString(" AND "), *args.toTypedArray())
+}
+
+fun UpdateQueryBuilder.where(vararg values: Pair<String, Any>): UpdateQueryBuilder {
+  //TODO better solution
+  val args = mutableListOf<Pair<String, Any>>()
+  val params = mutableListOf<String>()
+  for (kv in values) {
+    val column = kv.first
+    args.add(Pair(column, kv.second))
+    params.add("$column={$column}")
+  }
+  return where(params.joinToString(" AND "), *args.toTypedArray())
 }
 
 fun Array<out Pair<String, Any?>>._toContentValues(): ContentValues {
