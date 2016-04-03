@@ -77,14 +77,20 @@ class ImageInterceptor(val imageCache: CompositeDiskStorage, val service: Articl
         service.getArticle(url.removePrefix("tjournal:").toInt()).toObservable()
           .flatMap {
             eventBus.post(ArticleLoadedEvent(it))
-            val title = "<h2>" + it.preview.title + "</h2>\n"
-            if (it.preview.externalLink != null) {
+            val preview = it.preview
+            val title = "<h2>" + preview.title + "</h2>\n"
+            val likes = (if (preview.likes > 0) "+" else "-") + preview.likes
+            val footer = String.format(footer, likes, preview.commentsCount)
+            if (preview.externalLink != null) {
               Observable.just(
-                title, createExternalSourceElement(it.preview.externalLink), it.text
+                title,
+                createExternalSourceElement(preview.externalLink),
+                it.text, footer
               )
             } else {
-              Observable.just(title, it.text)
+              Observable.just(title, it.text, footer)
             }
+            //TODO add some error handling
           }
           .onErrorResumeNext(Observable.just(onErrorMessage))
           .defaultIfEmpty(onErrorMessage),
@@ -115,6 +121,10 @@ const val articleHead = "<!doctype html>" +
   "<style>article img { max-width: 100%;}</style>" +
   "</head>" +
   "<body>"
+const val footer = "<footer><table border=0 width=\"100%%\"><tr>" +
+  "<td with=\"50%%\" style=\"text-align: left; color: #999;\">%s</td>" +
+  "<td width=\"50%%\" style=\"text-align: right; color: #999;\">%d comments</td>" +
+  "</tr></footer>"
 
 class ArticleInputStream(stringsProvider: Iterable<String>) : InputStream() {
   private val strings = stringsProvider.iterator()
