@@ -7,6 +7,7 @@ import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.a6v.tjreader.AppHelper
 import com.a6v.tjreader.EventBus
 import com.a6v.tjreader.R
 import com.a6v.tjreader.activities.MainActivity
@@ -53,6 +54,10 @@ class FeedFragment : BaseFragment() {
       articles = service.getArticles(0).cache()
       retainedState.put("articles", articles)
     }
+    AppHelper.observeVersionChanged(activity)
+      .doOnNext { activity.toast("Saved data cleared") }
+      .subscribeWith {
+      onCompleted {
     articles
       .observeOn(AndroidSchedulers.mainThread())
       .compose(bindToLifecycle<List<ArticlePreview>>())
@@ -65,6 +70,7 @@ class FeedFragment : BaseFragment() {
           activity.toast("Error loading articles")//TODO
         }
       }
+    }}
 
     ReadButtonController.run(service, this)
 
