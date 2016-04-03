@@ -7,7 +7,6 @@ import com.nostra13.universalimageloader.cache.disc.DiskCache
 import com.nostra13.universalimageloader.cache.disc.impl.LimitedAgeDiskCache
 import com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiskCache
 import com.nostra13.universalimageloader.cache.disc.naming.FileNameGenerator
-import com.nostra13.universalimageloader.core.DefaultConfigurationFactory
 import com.nostra13.universalimageloader.core.DisplayImageOptions
 import com.nostra13.universalimageloader.core.ImageLoader
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration
@@ -29,9 +28,8 @@ class ImageLoaderImpl {
     loader.init(
       ImageLoaderConfiguration.Builder(context)
         .diskCache(diskCache)
-        .imageDownloader(ImageDownloaderImpl(DefaultConfigurationFactory.createImageDownloader(context)))
+        .imageDownloader(ImageDownloaderImpl(BaseImageDownloader(context, 5000, 5000)))
         .defaultDisplayImageOptions(getDefaultImageOptions().build())
-        .imageDownloader(BaseImageDownloader(context, 5000, 5000))
         .writeDebugLogs()
         .build()
     )
