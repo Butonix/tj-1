@@ -55,8 +55,12 @@ class FeedFragment : BaseFragment() {
       retainedState.put("articles", articles)
     }
     AppHelper.observeVersionChanged(activity)
-      .doOnNext { activity.toast("Saved data cleared") }
       .subscribeWith {
+        onNext {
+          if (it) {
+            activity.toast("Saved data cleared")
+          }
+        }
       onCompleted {
     articles
       .observeOn(AndroidSchedulers.mainThread())
