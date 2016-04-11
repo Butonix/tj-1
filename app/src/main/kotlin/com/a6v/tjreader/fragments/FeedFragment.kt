@@ -51,7 +51,7 @@ class FeedFragment : BaseFragment() {
     if (retainedState.containsKey("articles")) {
       articles = retainedState.get("articles") as Observable<List<ArticlePreview>>
     } else {
-      articles = service.getArticles(0).cache()
+      articles = service.getArticles(0).retry(1).cache()
       retainedState.put("articles", articles)
     }
     AppHelper.observeVersionChanged(activity)
