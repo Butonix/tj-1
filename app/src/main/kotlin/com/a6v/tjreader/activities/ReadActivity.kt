@@ -126,7 +126,9 @@ class ReadActivity : BaseActivity() {
             if (index > articleIds.size) {
               index = articleIds.size - 1
             }
-            loadArticle(articleIds[index])//item at index is replaced with new one
+            val nextId = articleIds[index]//item at index is replaced with new one
+            loadArticle(nextId)
+            articleMenu.setChecked(nextId)
           } else {
             toast("No more articles")
             finish()
