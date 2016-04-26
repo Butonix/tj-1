@@ -4,9 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
-import android.support.v4.widget.DrawerLayout
 import android.view.Menu
 import android.view.MenuItem
 import android.webkit.WebView
@@ -19,6 +17,7 @@ import com.a6v.tjreader.fragments.ArticleFragment
 import com.a6v.tjreader.db.ArticlesDAO
 import com.a6v.tjreader.widgets.ArticleLoadedEvent
 import com.a6v.tjreader.widgets.ArticleWebViewController
+import com.a6v.tjreader.widgets.NavigationDrawer
 import dagger.Module
 import dagger.Provides
 import dagger.Subcomponent
@@ -35,7 +34,7 @@ class ReadActivity : BaseActivity() {
   @Inject lateinit var webViewController: ArticleWebViewController
   @Inject lateinit var eventBus: EventBus
   val articleIds: MutableList<Int> = mutableListOf()
-  lateinit var articleMenu: ArticlesMenu
+  lateinit var articleMenu: NavigationDrawer
   var currentArticle: Article? = null
 
   override fun initComponent() {
@@ -47,7 +46,7 @@ class ReadActivity : BaseActivity() {
     setContentView(R.layout.activity_read)
     setSupportActionBar(toolbar)
     supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-    articleMenu = ArticlesMenu(drawer_menu, drawer) {
+    articleMenu = NavigationDrawer(drawer_menu, drawer) {
       loadArticle(it.itemId)
     }
     component.inject(this)
@@ -198,61 +197,5 @@ class WebViewModule {
   @PerActivity
   fun provideWebView(activity: BaseActivity): WebView {
     return activity.findViewById(R.id.webView) as WebView
-  }
-}
-
-class ArticlesMenu {
-  val menu: Menu
-  val drawer: DrawerLayout
-  private var enabled: Boolean = false
-
-  constructor(view: NavigationView, drawer: DrawerLayout, listener: (MenuItem) -> Unit) {
-    this.menu = view.menu
-    this.drawer = drawer
-    init(view, listener)
-  }
-
-  private fun init(menuView: NavigationView, listener: (MenuItem) -> Unit) {
-    enable(enabled)
-    menuView.setNavigationItemSelectedListener {
-      it.isChecked = true
-      drawer.closeDrawers()
-      listener(it)
-      true
-    }
-  }
-
-  fun populateWith(articleIdTitlePairs: List<Pair<Int, String>>) {
-    enable(articleIdTitlePairs.size > 1)//do not disable drawer with one article?
-    if (!enabled) {
-      return
-    }
-    for (i: Int in articleIdTitlePairs.indices) {
-      val idTitle = articleIdTitlePairs[i]
-      menu.add(0, idTitle.first, i, idTitle.second)
-    }
-    menu.setGroupCheckable(0, true, true)
-  }
-
-  fun removeItem(id: Int) {
-    if (enabled) {
-      menu.removeItem(id)
-      enable(menu.size() != 1)
-    }
-  }
-
-  fun setChecked(id: Int) {
-    if (enabled) {
-      menu.findItem(id).isChecked = true
-    }
-  }
-
-  private fun enable(enabled: Boolean) {
-    this.enabled = enabled
-    if (enabled) {
-      drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
-    } else {
-      drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-    }
   }
 }

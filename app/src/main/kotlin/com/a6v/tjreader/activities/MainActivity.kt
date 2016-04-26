@@ -10,6 +10,9 @@ import com.a6v.tjreader.extensions.getAppComponent
 import com.a6v.tjreader.fragments.FeedFragment
 import com.a6v.tjreader.fragments.ReadFragment
 import com.a6v.tjreader.fragments.SavedFragment
+import com.a6v.tjreader.service.FeedSorting
+import com.a6v.tjreader.service.FeedType
+import com.a6v.tjreader.widgets.NavigationDrawer
 import dagger.Subcomponent
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -28,19 +31,19 @@ class MainActivity : BaseActivity() {
     drawerToggle = ActionBarDrawerToggle(this, drawer, toolbar, 0, 0)
     drawer.setDrawerListener(drawerToggle)
     component.inject(this)
-    drawer_menu.setNavigationItemSelectedListener({
-      it.isChecked = true
+    NavigationDrawer(drawer_menu, drawer, enabled = true) {
       when (it.itemId) {
-        R.id.navi_feed -> showFragment(FeedFragment())
+        R.id.navi_feed_all -> showFeedFragment(FeedType.ALL, FeedSorting.RECENT)
+        R.id.navi_feed_news -> showFeedFragment(FeedType.NEWS, FeedSorting.RECENT)
+        R.id.navi_feed_articles -> showFeedFragment(FeedType.ARTICLES, FeedSorting.RECENT)
+        R.id.navi_feed_offtop -> showFeedFragment(FeedType.OFF_TOPIC, FeedSorting.RECENT)
         R.id.navi_saved -> showFragment(SavedFragment())
         R.id.navi_read -> showFragment(ReadFragment())
       }
-      drawer.closeDrawers()
-      true
-    })
+    }
     if (savedInstanceState == null) {
-      showFragment(FeedFragment())
-      drawer_menu.setCheckedItem(R.id.navi_feed)
+      showFeedFragment(FeedType.ALL, FeedSorting.RECENT)
+      drawer_menu.setCheckedItem(R.id.navi_feed_all)
     }
   }
 
@@ -64,6 +67,10 @@ class MainActivity : BaseActivity() {
 
   fun showFragment(fragment: Fragment) {
     supportFragmentManager.beginTransaction().replace(R.id.placeholder, fragment).commit()
+  }
+
+  fun showFeedFragment(feedType: FeedType, sorting: FeedSorting) {
+    showFragment(FeedFragment.create(feedType, sorting))
   }
 }
 

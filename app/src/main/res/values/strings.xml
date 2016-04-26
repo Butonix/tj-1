@@ -25,4 +25,9 @@
         <item quantity="many">@string/read_title</item>
         <item quantity="other">@string/read_title</item>
     </plurals>
+
+    <string name="menu_feed_all">All</string>
+    <string name="menu_feed_news">News</string>
+    <string name="menu_feed_articles">Articles</string>
+    <string name="menu_feed_offtop">Off topic</string>
 </resources>

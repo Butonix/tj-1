@@ -12,9 +12,9 @@ class ArticlesService(
   private val api: TJournalAPI,
   private val dao: ArticlesDAO) {
 
-  fun getArticles(page: Int): Observable<List<ArticlePreview>> {
+  fun getArticles(page: Int, type: FeedType, sorting: FeedSorting): Observable<List<ArticlePreview>> {
     //TODO use deserializer?
-    return api.getNews(page * 30)//TODO switch to computation
+    return api.getNews(page * 30, type.value, sorting.value)//TODO switch to computation
       .flatMap { previews ->
         dao.getSavedIds(previews.map { it.id })
           .map { savedIds ->
@@ -51,3 +51,11 @@ class ArticlesService(
 }
 
 data class ArticleCount(val total: Int, val loaded: Int)
+
+enum class FeedType(val value: Int) {
+  ALL(0), NEWS(1), OFF_TOPIC(2), VIDEO(3), ARTICLES(4)
+}
+
+enum class FeedSorting(val value: String) {
+  MAIN_PAGE("mainpage"), RECENT("recent"), WEEK("week")
+}

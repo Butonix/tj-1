@@ -1,9 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/navi_feed"
-            android:title="@string/feed" />
+        <item android:title="@string/feed">
+            <menu>
+                <group android:checkableBehavior="single">
+                    <item
+                        android:id="@+id/navi_feed_all"
+                        android:title="@string/menu_feed_all" />
+                    <item
+                        android:id="@+id/navi_feed_news"
+                        android:title="@string/menu_feed_news" />
+                    <item
+                        android:id="@+id/navi_feed_articles"
+                        android:title="@string/menu_feed_articles" />
+                    <item
+                        android:id="@+id/navi_feed_offtop"
+                        android:title="@string/menu_feed_offtop" />
+                </group>
+            </menu>
+        </item>
         <item
             android:id="@+id/navi_saved"
             android:title="@string/menu_saved" />

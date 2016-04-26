@@ -16,6 +16,8 @@ import com.a6v.tjreader.entities.Article
 import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.service.ArticleDownloader
 import com.a6v.tjreader.service.ArticlesService
+import com.a6v.tjreader.service.FeedSorting
+import com.a6v.tjreader.service.FeedType
 import com.a6v.tjreader.utils.logError
 import com.a6v.tjreader.widgets.ArticlesAdapter
 import com.a6v.tjreader.widgets.ReadButtonController
@@ -27,12 +29,18 @@ import rx.android.schedulers.AndroidSchedulers
 import rx.lang.kotlin.subscribeWith
 import javax.inject.Inject
 
-class FeedFragment : BaseFragment() {
+class FeedFragment : BaseFragment {
   @Inject lateinit var service: ArticlesService
   @Inject lateinit var imagePresenter: TempImagePresenter
   @Inject lateinit var articleDownloader: ArticleDownloader
   @Inject lateinit var eventBus: EventBus
   @Inject lateinit var retainedState: ActivityRetainedState
+
+  lateinit var articlesRetainKey: String
+  lateinit var articles: Observable<List<ArticlePreview>>
+
+  constructor() {
+  }
 
   override fun injectSelf() {
     (activity as MainActivity).component.inject(this)
@@ -47,12 +55,13 @@ class FeedFragment : BaseFragment() {
     article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
     val adapter = ArticlesAdapter(imagePresenter, eventBus)
     article_list.adapter = adapter
-    val articles: Observable<List<ArticlePreview>>
-    if (retainedState.containsKey("articles")) {
-      articles = retainedState.get("articles") as Observable<List<ArticlePreview>>
+    val feedType = arguments.getSerializable(ARG_FEED_TYPE) as FeedType
+    val sorting = arguments.getSerializable(ARG_SORTING) as FeedSorting
+    articlesRetainKey = "feed-$feedType-$sorting"
+    if (retainedState.containsKey(articlesRetainKey)) {
+      articles = retainedState.get(articlesRetainKey) as Observable<List<ArticlePreview>>
     } else {
-      articles = service.getArticles(0).retry(1).cache()
-      retainedState.put("articles", articles)
+      articles = service.getArticles(0, feedType, sorting).retry(1).cache()
     }
     AppHelper.observeVersionChanged(activity)
       .subscribeWith {
@@ -104,11 +113,30 @@ class FeedFragment : BaseFragment() {
     articleDownloader.downloadPendingArticles().subscribe()//FIXME handle errors
   }
 
+  override fun onSaveInstanceState(outState: Bundle?) {
+    super.onSaveInstanceState(outState)
+    retainedState.put(articlesRetainKey, articles)
+  }
+
   private fun setTitle(count: Int) {
     if (count > 0) {
       activity.title = getString(R.string.feed) + ' ' + count
     } else {
       activity.title = getString(R.string.feed)
+    }
+  }
+
+  companion object {
+    const val ARG_FEED_TYPE = "feedType"
+    const val ARG_SORTING = "sorting"
+
+    fun create(feedType: FeedType, sorting: FeedSorting): FeedFragment {
+      val fragment = FeedFragment()
+      val args = Bundle()
+      args.putSerializable(ARG_FEED_TYPE, feedType)
+      args.putSerializable(ARG_SORTING, sorting)
+      fragment.arguments = args
+      return fragment
     }
   }
 }
