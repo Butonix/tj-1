@@ -66,6 +66,12 @@ class ReadActivity : BaseActivity() {
         currentArticle = it.article
         supportInvalidateOptionsMenu()
       }
+    fab_read.setOnClickListener {
+      val article = currentArticle
+      if (article != null) {
+        markArticleAsRead(article)
+      }
+    }
   }
 
   override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -113,27 +119,6 @@ class ReadActivity : BaseActivity() {
     val article = currentArticle
     if (article != null) {
       when (item.itemId) {
-        R.id.menu_read -> {
-          val id = article.preview.id
-          cache.markArticleRead(id)
-            .subscribeOn(Schedulers.computation())
-            .subscribe()
-          var index = articleIds.indexOf(id)
-          articleIds.removeAt(index)
-          articleMenu.removeItem(id)
-          if (articleIds.size > 0) {
-            if (index > articleIds.size) {
-              index = articleIds.size - 1
-            }
-            val nextId = articleIds[index]//item at index is replaced with new one
-            loadArticle(nextId)
-            articleMenu.setChecked(nextId)
-          } else {
-            toast("No more articles")
-            finish()
-            return true
-          }
-        }
         R.id.menu_share -> {
           share(article.preview.url)
           return true
@@ -170,6 +155,27 @@ class ReadActivity : BaseActivity() {
 
   private fun loadArticle(id: Int) {
     webViewController.loadArticle(id)
+  }
+
+  private fun markArticleAsRead(article: Article) {
+    val id = article.preview.id
+    cache.markArticleRead(id)
+      .subscribeOn(Schedulers.computation())
+      .subscribe()
+    var index = articleIds.indexOf(id)
+    articleIds.removeAt(index)
+    articleMenu.removeItem(id)
+    if (articleIds.size > 0) {
+      if (index > articleIds.size) {
+        index = articleIds.size - 1
+      }
+      val nextId = articleIds[index]//item at index is replaced with new one
+      loadArticle(nextId)
+      articleMenu.setChecked(nextId)
+    } else {
+      toast("No more articles")
+      finish()
+    }
   }
 
   companion object {
