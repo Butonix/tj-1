@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
+import android.view.Menu
+import android.view.MenuItem
 import com.a6v.tjreader.R
 import com.a6v.tjreader.extensions.getAppComponent
 import com.a6v.tjreader.fragments.FeedFragment
@@ -18,7 +20,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : BaseActivity() {
   lateinit var component: MainActivityComponent
-  lateinit var drawerToggle: ActionBarDrawerToggle
 
   override fun initComponent() {
     component = getAppComponent().mainActivity(ActivityModule(this))
@@ -28,8 +29,6 @@ class MainActivity : BaseActivity() {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
     setSupportActionBar(toolbar)
-    drawerToggle = ActionBarDrawerToggle(this, drawer, toolbar, 0, 0)
-    drawer.setDrawerListener(drawerToggle)
     component.inject(this)
     NavigationDrawer(drawer_menu, drawer, enabled = true) {
       when (it.itemId) {
@@ -47,18 +46,28 @@ class MainActivity : BaseActivity() {
     }
   }
 
-  override fun onPostCreate(savedInstanceState: Bundle?) {
-    super.onPostCreate(savedInstanceState)
-    drawerToggle.syncState()
+  override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    menuInflater.inflate(R.menu.main, menu)
+    return true
   }
 
-  override fun onConfigurationChanged(newConfig: Configuration?) {
-    super.onConfigurationChanged(newConfig)
-    drawerToggle.onConfigurationChanged(newConfig)
+  override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    when (item.itemId) {
+      R.id.main_menu_drawer -> {
+        //todo add toggle drawer
+        if (drawer.isDrawerOpen(GravityCompat.END)) {
+          drawer.closeDrawers()
+        } else {
+          drawer.openDrawer(GravityCompat.END)
+        }
+        return true
+      }
+    }
+    return super.onOptionsItemSelected(item)
   }
 
   override fun onBackPressed() {
-    if (drawer.isDrawerOpen(GravityCompat.START)) {
+    if (drawer.isDrawerOpen(GravityCompat.END)) {
       drawer.closeDrawers()
     } else {
       super.onBackPressed()
