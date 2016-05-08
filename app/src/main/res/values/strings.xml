@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">TJReader</string>
     <string name="feed">Feed</string>
+    <string name="feed_error_net">Network error, tap to try again</string>
+    <string name="feed_error_other">Couldn\'t load feed, tap to try again</string>
     <string name="menu_saved">Saved</string>
     <string name="read">Read</string>
 

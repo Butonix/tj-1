@@ -22,9 +22,10 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 interface TJournalAPI {
-  @GET("/club?count=50")
+  @GET("/club")
   fun getNews(
     @Query("offset") offset: Int,
+    @Query("count") count: Int,
     @Query("type") type: Int,
     @Query("sortMode") sort: String
   ): Observable<List<ArticlePreview>>

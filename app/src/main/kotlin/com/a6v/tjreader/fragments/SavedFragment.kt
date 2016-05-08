@@ -15,7 +15,7 @@ import com.a6v.tjreader.widgets.ArticleClickEvent
 import com.a6v.tjreader.widgets.ArticlesAdapter
 import com.a6v.tjreader.widgets.PermanentImagePresenter
 import com.a6v.tjreader.widgets.ReadButtonController
-import kotlinx.android.synthetic.main.fragment_article_list_read.*
+import kotlinx.android.synthetic.main.widget_article_list.*
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import javax.inject.Inject
@@ -53,12 +53,7 @@ class SavedFragment : BaseFragment() {
       .compose(bindToLifecycle<List<ArticlePreview>>())
       .subscribe({
         val adapter = article_list.adapter as ArticlesAdapter
-        adapter.items.clear()
-        if (it.isEmpty()) {
-        } else {
-          adapter.items.addAll(it)
-          adapter.notifyDataSetChanged()
-        }
+        adapter.setItems(it)
         //setTitle(it.size)
       })//TODO handle error
   }

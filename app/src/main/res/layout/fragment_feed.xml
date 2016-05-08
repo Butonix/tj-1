@@ -5,9 +5,15 @@
 
     <include layout="@layout/widget_btn_read" />
 
-    <include
-        layout="@layout/widget_article_list"
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/feed_swipe"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/read" />
+        android:layout_above="@+id/read">
+
+        <include
+            layout="@layout/widget_article_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </android.support.v4.widget.SwipeRefreshLayout>
 </RelativeLayout>

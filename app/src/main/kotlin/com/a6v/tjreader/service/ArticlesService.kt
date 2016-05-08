@@ -14,7 +14,8 @@ class ArticlesService(
 
   fun getArticles(page: Int, type: FeedType, sorting: FeedSorting): Observable<List<ArticlePreview>> {
     //TODO use deserializer?
-    return api.getNews(page * 30, type.value, sorting.value)//TODO switch to computation
+    val pageSize = 10
+    return api.getNews(page * pageSize, pageSize, type.value, sorting2String(sorting))//TODO switch to computation
       .flatMap { previews ->
         dao.getSavedIds(previews.map { it.id })
           .map { savedIds ->
@@ -48,6 +49,14 @@ class ArticlesService(
     return dao.observeArticleChanges().startWith("")
       .flatMap { dao.getPreviews("status=" + ArticlesDAO.statusToInt(ArticleStatus.READY)) }
   }
+
+  fun sorting2String(sorting: FeedSorting): String {
+    return when (sorting) {
+      FeedSorting.MAIN_PAGE -> "mainpage"
+      FeedSorting.RECENT -> "recent"
+      FeedSorting.WEEK -> "week"
+    }
+  }
 }
 
 data class ArticleCount(val total: Int, val loaded: Int)
@@ -56,6 +65,6 @@ enum class FeedType(val value: Int) {
   ALL(0), NEWS(1), OFF_TOPIC(2), VIDEO(3), ARTICLES(4)
 }
 
-enum class FeedSorting(val value: String) {
-  MAIN_PAGE("mainpage"), RECENT("recent"), WEEK("week")
+enum class FeedSorting {
+  MAIN_PAGE, RECENT, WEEK
 }

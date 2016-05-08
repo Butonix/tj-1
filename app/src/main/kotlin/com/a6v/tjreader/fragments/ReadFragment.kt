@@ -12,7 +12,7 @@ import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.db.ArticlesDAO
 import com.a6v.tjreader.widgets.ArticlesAdapter
 import com.a6v.tjreader.widgets.PermanentImagePresenter
-import kotlinx.android.synthetic.main.fragment_article_list.*
+import kotlinx.android.synthetic.main.widget_article_list.*
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
 import javax.inject.Inject
@@ -27,7 +27,7 @@ class ReadFragment : BaseFragment() {
   }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-    return inflater.inflate(R.layout.fragment_article_list, container, false)
+    return inflater.inflate(R.layout.widget_article_list, container, false)
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -42,8 +42,7 @@ class ReadFragment : BaseFragment() {
       .subscribe({
         if (it.isEmpty()) {
         } else {
-          adapter.items.addAll(it)
-          adapter.notifyDataSetChanged()
+          adapter.setItems(it)
         }
         setTitle(it.size)
       })//TODO handle error

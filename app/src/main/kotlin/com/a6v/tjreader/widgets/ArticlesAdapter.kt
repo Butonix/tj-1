@@ -3,17 +3,16 @@ package com.a6v.tjreader.widgets
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageView
 import com.a6v.tjreader.EventBus
-import com.a6v.tjreader.ImageLoaderImpl
 import com.a6v.tjreader.R
 import com.a6v.tjreader.entities.ArticlePreview
-import javax.inject.Inject
 
-class ArticlesAdapter(private val imagePresenter: ImagePresenter,
-  private val eventBus: EventBus) : RecyclerView.Adapter<ArticleViewHolder>() {
-  var inflater: LayoutInflater? = null
-  val items: MutableList<ArticlePreview> = mutableListOf()
+class ArticlesAdapter(
+  private val imagePresenter: ImagePresenter,
+  private val eventBus: EventBus
+) : RecyclerView.Adapter<ArticleViewHolder>() {
+  private val items = mutableListOf<ArticlePreview>()
+  private var inflater: LayoutInflater? = null
 
   override fun getItemCount(): Int {
     return items.size
@@ -30,34 +29,19 @@ class ArticlesAdapter(private val imagePresenter: ImagePresenter,
     val view = inflater!!.inflate(R.layout.widget_article_preview, parent, false)
     return ArticleViewHolder(view, imagePresenter, eventBus)
   }
-}
 
-interface ImagePresenter {
-  fun displayImage(url: String, view: ImageView)
-}
-
-class TempImagePresenter : ImagePresenter {
-  private val loader: ImageLoaderImpl
-
-  @Inject
-  constructor(loader: ImageLoaderImpl) {
-    this.loader = loader
+  fun setItems(items: List<ArticlePreview>) {
+    this.items.clear()
+    this.items.addAll(items)
+    notifyDataSetChanged()
   }
 
-  override fun displayImage(url: String, view: ImageView) {
-    loader.displayImage(url, view)
-  }
-}
-
-class PermanentImagePresenter : ImagePresenter {
-  private val loader: ImageLoaderImpl
-
-  @Inject
-  constructor(loader: ImageLoaderImpl) {
-    this.loader = loader
+  fun getItem(position: Int): ArticlePreview {
+    return items[position]
   }
 
-  override fun displayImage(url: String, view: ImageView) {
-    loader.displayImage(url, view, true)
+  fun removeItemAt(position: Int) {
+    items.removeAt(position)
+    notifyItemRemoved(position)
   }
 }
