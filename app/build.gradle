@@ -1,12 +1,8 @@
 buildscript {
-    ext.kotlin_version = '1.0.1'
-    //ext.kotlin_version = '1.0.2-eap-44'
+    ext.kotlin_version = '1.0.2'
 
     repositories {
         jcenter()
-        maven {
-            url 'https://dl.bintray.com/kotlin/kotlin-eap'
-        }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -36,7 +32,7 @@ android {
         applicationId "com.a6v.tjreader"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 4
+        versionCode 5
         versionName "0.1"
         if (project.hasProperty('tjr.signing.keyAlias')) {
             signingConfig signingConfigs.prod
