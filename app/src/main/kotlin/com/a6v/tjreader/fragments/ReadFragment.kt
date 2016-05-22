@@ -10,6 +10,7 @@ import com.a6v.tjreader.R
 import com.a6v.tjreader.activities.MainActivity
 import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.db.ArticlesDAO
+import com.a6v.tjreader.utils.ObservableList
 import com.a6v.tjreader.widgets.ArticlesAdapter
 import com.a6v.tjreader.widgets.PermanentImagePresenter
 import kotlinx.android.synthetic.main.widget_article_list.*
@@ -33,7 +34,8 @@ class ReadFragment : BaseFragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     setTitle(0)
     article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-    val adapter = ArticlesAdapter(imageInteractor, eventBus)
+    val articles = ObservableList<ArticlePreview>()
+    val adapter = ArticlesAdapter(articles, imageInteractor, eventBus)
     article_list.adapter = adapter
     dao.getReadArticles()
       .subscribeOn(Schedulers.computation())
@@ -42,7 +44,7 @@ class ReadFragment : BaseFragment() {
       .subscribe({
         if (it.isEmpty()) {
         } else {
-          adapter.setItems(it)
+          articles.set(it)
         }
         setTitle(it.size)
       })//TODO handle error

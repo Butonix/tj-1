@@ -14,9 +14,10 @@ import kotlinx.android.synthetic.main.widget_list_progress.view.*
 const val loaderViewType = 100
 const val messageViewType = 200
 
-class ProgressLoadingAdapter<T : RecyclerView.ViewHolder> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
+class PagingAdapter<T : RecyclerView.ViewHolder> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
   private val adapter: RecyclerView.Adapter<T>
-  private val onLoad: (ProgressLoadingAdapter<T>) -> Unit
+  private val onLoad: (PagingAdapter<T>) -> Unit
+  private val onReload: () -> Unit
   private val mainThreadHandler = Handler(Looper.getMainLooper())
   private var state = State.IDLE
   private var inflater: LayoutInflater? = null
@@ -25,18 +26,22 @@ class ProgressLoadingAdapter<T : RecyclerView.ViewHolder> : RecyclerView.Adapter
 
   private var message: CharSequence = ""
 
-  constructor(adapter: RecyclerView.Adapter<T>, onLoad: (ProgressLoadingAdapter<T>) -> Unit) {
+  constructor(adapter: RecyclerView.Adapter<T>,
+    onLoadPage: (PagingAdapter<T>) -> Unit,
+    onReloadPage: () -> Unit)
+  {
     this.adapter = adapter
     adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
       override fun onChanged() {
-        this@ProgressLoadingAdapter.notifyDataSetChanged()
+        this@PagingAdapter.notifyDataSetChanged()
       }
 
       override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
-        this@ProgressLoadingAdapter.notifyItemRangeRemoved(positionStart, itemCount)
+        this@PagingAdapter.notifyItemRangeRemoved(positionStart, itemCount)
       }
     })
-    this.onLoad = onLoad
+    this.onLoad = onLoadPage
+    this.onReload = onReloadPage
   }
 
   override fun getItemCount(): Int {
@@ -51,16 +56,11 @@ class ProgressLoadingAdapter<T : RecyclerView.ViewHolder> : RecyclerView.Adapter
   override fun getItemViewType(position: Int): Int {
     if (position == itemCount - 1) {
       when (state) {
-        State.READY_TO_LOAD, State.LOADING -> {
-          return loaderViewType
-        }
-        State.MESSAGE -> {
-          return messageViewType
-        }
+        State.READY_TO_LOAD, State.LOADING -> return loaderViewType
+        State.MESSAGE -> return messageViewType
       }
     }
-    val itemViewType = adapter.getItemViewType(position)
-    return itemViewType
+    return adapter.getItemViewType(position)
   }
 
   override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -73,7 +73,10 @@ class ProgressLoadingAdapter<T : RecyclerView.ViewHolder> : RecyclerView.Adapter
         }
       }
     } else if (holder is MessageViewHolder) {
-      holder.bind(message)
+      holder.bind(message) {
+        showLoader()
+        onReload()
+      }
       itemPosition = position
     } else {
       adapter.onBindViewHolder(holder as T, position)
@@ -118,10 +121,20 @@ class ProgressLoadingAdapter<T : RecyclerView.ViewHolder> : RecyclerView.Adapter
   }
 
   fun setLoaded(enableNextPageLoad: Boolean) {
-    state = if (enableNextPageLoad) State.READY_TO_LOAD else State.IDLE
+    enableNextPageLoading(enableNextPageLoad)
     if (itemPosition >= 0) {
       //notifyItemRemoved(itemPosition)
       itemPosition = -1
+    }
+  }
+
+  fun showLoader() {
+    state = State.LOADING
+    if (itemPosition >= 0) {
+      notifyItemChanged(itemPosition)
+    } else {
+      //TODO notify item inserted?
+      notifyDataSetChanged()
     }
   }
 }
@@ -137,8 +150,9 @@ private class MessageViewHolder : RecyclerView.ViewHolder {
     messageView = itemView as TextView
   }
 
-  fun bind(message: CharSequence) {
+  fun bind(message: CharSequence, onErrorClick: () -> Unit) {
     messageView.text = message
+    messageView.setOnClickListener { onErrorClick() }
   }
 }
 

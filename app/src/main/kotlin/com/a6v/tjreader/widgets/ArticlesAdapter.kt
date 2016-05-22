@@ -6,20 +6,31 @@ import android.view.ViewGroup
 import com.a6v.tjreader.EventBus
 import com.a6v.tjreader.R
 import com.a6v.tjreader.entities.ArticlePreview
+import com.a6v.tjreader.utils.DataSourceAdapterObserver
+import com.a6v.tjreader.utils.ObservableList
+import rx.android.schedulers.AndroidSchedulers
 
-class ArticlesAdapter(
-  private val imagePresenter: ImagePresenter,
+class ArticlesAdapter : RecyclerView.Adapter<ArticleViewHolder> {
+  private val articles: ObservableList<ArticlePreview>
+  private val imagePresenter: ImagePresenter
   private val eventBus: EventBus
-) : RecyclerView.Adapter<ArticleViewHolder>() {
-  private val items = mutableListOf<ArticlePreview>()
   private var inflater: LayoutInflater? = null
 
-  override fun getItemCount(): Int {
-    return items.size
+  constructor(storage: ObservableList<ArticlePreview>,
+    imagePresenter: ImagePresenter,
+    eventBus: EventBus) {
+    this.imagePresenter = imagePresenter
+    this.eventBus = eventBus
+    this.articles = storage
+    storage.observeData()
+      .observeOn(AndroidSchedulers.mainThread())
+      .subscribe(DataSourceAdapterObserver(this))
   }
 
+  override fun getItemCount(): Int = articles.size()
+
   override fun onBindViewHolder(viewHolder: ArticleViewHolder, position: Int) {
-    viewHolder.bind(items[position])
+    viewHolder.bind(articles.get(position))
   }
 
   override fun onCreateViewHolder(parent: ViewGroup, position: Int): ArticleViewHolder {
@@ -28,20 +39,5 @@ class ArticlesAdapter(
     }
     val view = inflater!!.inflate(R.layout.widget_article_preview, parent, false)
     return ArticleViewHolder(view, imagePresenter, eventBus)
-  }
-
-  fun setItems(items: List<ArticlePreview>) {
-    this.items.clear()
-    this.items.addAll(items)
-    notifyDataSetChanged()
-  }
-
-  fun getItem(position: Int): ArticlePreview {
-    return items[position]
-  }
-
-  fun removeItemAt(position: Int) {
-    items.removeAt(position)
-    notifyItemRemoved(position)
   }
 }

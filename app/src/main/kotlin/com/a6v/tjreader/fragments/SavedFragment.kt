@@ -11,6 +11,7 @@ import com.a6v.tjreader.activities.MainActivity
 import com.a6v.tjreader.activities.ReadActivity
 import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.service.ArticlesService
+import com.a6v.tjreader.utils.ObservableList
 import com.a6v.tjreader.widgets.ArticleClickEvent
 import com.a6v.tjreader.widgets.ArticlesAdapter
 import com.a6v.tjreader.widgets.PermanentImagePresenter
@@ -24,6 +25,7 @@ class SavedFragment : BaseFragment() {
   @Inject lateinit var service: ArticlesService
   @Inject lateinit var imageInteractor: PermanentImagePresenter
   @Inject lateinit var eventBus: EventBus
+  private val articles = ObservableList<ArticlePreview>()
 
   override fun injectSelf() {
     (activity as MainActivity).component.inject(this)
@@ -36,7 +38,7 @@ class SavedFragment : BaseFragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     setTitle(0)
     article_list.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-    article_list.adapter = ArticlesAdapter(imageInteractor, eventBus)
+    article_list.adapter = ArticlesAdapter(articles, imageInteractor, eventBus)
     ReadButtonController.run(service, this)
     eventBus.observe(ArticleClickEvent::class.java)
       .compose(bindToLifecycle<ArticleClickEvent>())
@@ -52,8 +54,7 @@ class SavedFragment : BaseFragment() {
       .observeOn(AndroidSchedulers.mainThread())
       .compose(bindToLifecycle<List<ArticlePreview>>())
       .subscribe({
-        val adapter = article_list.adapter as ArticlesAdapter
-        adapter.setItems(it)
+        articles.set(it)
         //setTitle(it.size)
       })//TODO handle error
   }
