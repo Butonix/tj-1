@@ -7,11 +7,10 @@ import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.a6v.tjreader.EventBus
 import com.a6v.tjreader.R
-import com.a6v.tjreader.activities.MainActivity
 import com.a6v.tjreader.activities.ActivityRetainedState
 import com.a6v.tjreader.activities.FeedManager
+import com.a6v.tjreader.activities.MainActivity
 import com.a6v.tjreader.entities.Article
 import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.extensions.subscribe_
@@ -37,7 +36,6 @@ class FeedFragment : BaseFragment {
   @Inject lateinit var service: ArticlesService
   @Inject lateinit var imagePresenter: TempImagePresenter
   @Inject lateinit var articleDownloader: ArticleDownloader
-  @Inject lateinit var eventBus: EventBus
   @Inject lateinit var retainedState: ActivityRetainedState
   lateinit var articles: ObservableList<ArticlePreview>
   lateinit var feedManager: FeedManager
@@ -66,7 +64,7 @@ class FeedFragment : BaseFragment {
       FeedManager(articles, feedType, sorting, service)
     }
 
-    val itemsAdapter = ArticlesAdapter(articles, imagePresenter, eventBus)
+    val itemsAdapter = ArticlesAdapter(articles, imagePresenter, {})
     pagingAdapter = PagingAdapter(itemsAdapter,
       onLoadPage = { loadPage(feedManager.loadNextPage()) },
       onReloadPage = { loadPage(feedManager.reloadPage()) }

@@ -2,7 +2,6 @@ package com.a6v.tjreader.widgets
 
 import android.support.v7.widget.RecyclerView
 import android.view.View
-import com.a6v.tjreader.EventBus
 import com.a6v.tjreader.entities.ArticlePreview
 import com.a6v.tjreader.extensions.gone
 import com.a6v.tjreader.extensions.toggleText
@@ -12,7 +11,7 @@ import kotlinx.android.synthetic.main.widget_article_preview.view.*
 
 class ArticleViewHolder(itemView: View,
   private val imageLoader: ImagePresenter,
-  private val eventBus: EventBus) : RecyclerView.ViewHolder(itemView) {
+  private val onClick: (ArticlePreview) -> Unit) : RecyclerView.ViewHolder(itemView) {
   fun bind(article: ArticlePreview) {
     itemView.title.text = article.title
     itemView.intro.text = article.intro
@@ -26,9 +25,7 @@ class ArticleViewHolder(itemView: View,
     itemView.likes.isEnabled = article.likes > 0//change colors
     //todo colors
     itemView.likes.text = if (article.likes > 0) "+" + article.likes else article.likes.toString()
-    itemView.setOnClickListener { eventBus.post(ArticleClickEvent(article)) }
+    itemView.setOnClickListener { onClick(article) }
     itemView.source.toggleText(article.externalLink?.domain ?: "")
   }
 }
-
-data class ArticleClickEvent(val preview: ArticlePreview)
