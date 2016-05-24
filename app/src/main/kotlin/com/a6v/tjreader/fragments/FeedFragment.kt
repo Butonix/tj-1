@@ -134,14 +134,16 @@ class FeedFragment : BaseFragment {
           }
         },
         onError = {
-          showRefreshProgress(false)
           if (it !is CancellationException) {
+            showRefreshProgress(false)
             if (isNetworkError(it)) {
               pagingAdapter.showMessage(getString(R.string.feed_error_net))
             } else {
               logError(it)
               pagingAdapter.showMessage(getString(R.string.feed_error_other))
             }
+          } else {
+            logError(it)
           }
         }
       )
