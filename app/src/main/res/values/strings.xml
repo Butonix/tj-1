@@ -1,32 +1,9 @@
 <resources>
     <string name="app_name">TJReader</string>
+
     <string name="feed">Feed</string>
-    <string name="feed_error_net">Network error, tap to try again</string>
-    <string name="feed_error_other">Couldn\'t load feed, tap to try again</string>
     <string name="menu_saved">Saved</string>
     <string name="read">Read</string>
-
-    <string name="saved_title_zero">Saved</string>
-    <string name="saved_title">Saved (%d)</string>
-    <plurals name="saved_title">
-        <item quantity="zero">@string/saved_title_zero</item>
-        <item quantity="one">@string/saved_title</item>
-        <item quantity="two">@string/saved_title</item>
-        <item quantity="few">@string/saved_title</item>
-        <item quantity="many">@string/saved_title</item>
-        <item quantity="other">@string/saved_title</item>
-    </plurals>
-    
-    <string name="read_title_zero">Read</string>
-    <string name="read_title">Read (%d)</string>
-    <plurals name="read_title">
-        <item quantity="zero">@string/read_title_zero</item>
-        <item quantity="one">@string/read_title</item>
-        <item quantity="two">@string/read_title</item>
-        <item quantity="few">@string/read_title</item>
-        <item quantity="many">@string/read_title</item>
-        <item quantity="other">@string/read_title</item>
-    </plurals>
 
     <string name="menu_feed_all">All</string>
     <string name="menu_feed_news">News</string>

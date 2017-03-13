@@ -4,7 +4,6 @@
     android:id="@+id/read"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_alignParentBottom="true"
     android:enabled="false"
     android:text="Read"
     android:visibility="gone"
